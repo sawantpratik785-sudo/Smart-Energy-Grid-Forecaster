@@ -1,0 +1,172 @@
+/* Smart Energy Grid Peak-Demand Forecaster Custom CSS Design System */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+/* Remove Streamlit default top whitespace and header gaps */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+/* Ensure the sidebar collapse button is always visible above the glassmorphism header */
+button[kind="header"] {
+    z-index: 999999 !important;
+}
+
+.block-container {
+    padding-top: 1.2rem !important;
+    padding-bottom: 1.5rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    max-width: 96% !important;
+}
+
+/* Dynamic Glassmorphism Base Styles */
+.stApp {
+    color: #e2e8f0;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    transition: none;
+}
+
+/* Hide stale elements instantly when changing tabs to prevent ghosting/overlap */
+[data-testid="stAppViewBlockContainer"] [data-stale="true"],
+[data-testid="stAppViewContainer"] [data-stale="true"],
+.element-container[data-stale="true"] {
+    opacity: 0 !important;
+    transition: opacity 0.05s ease-out;
+}
+
+/* Header Card with Glassmorphism & Neon Gradient */
+.header-card {
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 16px;
+    padding: 16px 24px !important;
+    margin-top: 0px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.7),
+                0 0 25px 0 rgba(56, 189, 248, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+
+.header-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.1rem !important;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2px !important;
+}
+
+.header-subtitle {
+    color: #cbd5e1;
+    font-size: 1.0rem;
+    margin-bottom: 0px;
+    font-weight: 400;
+}
+
+/* Live Pulse Dot */
+.pulse-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #34d399;
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+    animation: pulse 1.8s infinite;
+    margin-right: 8px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* Metric Cards */
+.metric-container {
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.5);
+}
+
+.metric-container:hover {
+    transform: translateY(-4px);
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 14px 28px -5px rgba(56, 189, 248, 0.3);
+}
+
+.metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #38bdf8;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.metric-label {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Alert Status Cards */
+.status-normal {
+    background: rgba(16, 185, 129, 0.18);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: #34d399;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.status-warning {
+    background: rgba(245, 158, 11, 0.18);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fbbf24;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.status-critical {
+    background: rgba(239, 68, 68, 0.2);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(239, 68, 68, 0.7);
+    color: #f87171;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+    animation: criticalBlink 2s infinite;
+}
+
+@keyframes criticalBlink {
+    0%, 100% { border-color: rgba(239, 68, 68, 0.6); }
+    50% { border-color: rgba(239, 68, 68, 1.0); box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); }
+}
+
+/* Sidebar Dark Glass */
+section[data-testid="stSidebar"] {
+    background: rgba(10, 14, 23, 0.94);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}

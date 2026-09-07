@@ -362,6 +362,62 @@ with tab3:
     st.header("⚡ Live Peak Load Predictor & Grid Warning System")
     st.markdown("Select model parameters, environmental conditions, and past lag inputs to forecast electricity load.")
     
+    # 1-Click Indian Grid Scenario Presets
+    st.markdown("**⚡ Quick Indian Grid Demonstration Presets**")
+    p1, p2, p3 = st.columns(3)
+    
+    if 'preset_hour' not in st.session_state:
+        st.session_state.preset_hour = 19
+        st.session_state.preset_temp = 34.0
+        st.session_state.preset_humidity = 65.0
+        st.session_state.preset_pop = 25000
+        st.session_state.preset_cap = 2500.0
+        st.session_state.preset_zone = "Residential"
+        st.session_state.preset_weekend = False
+        st.session_state.preset_lag1 = 1200.0
+        st.session_state.preset_lag24 = 1250.0
+
+    with p1:
+        if st.button("🔥 May Heatwave Peak (42°C, 8 PM)", use_container_width=True):
+            st.session_state.preset_hour = 20
+            st.session_state.preset_temp = 42.0
+            st.session_state.preset_humidity = 40.0
+            st.session_state.preset_pop = 52000
+            st.session_state.preset_cap = 2500.0
+            st.session_state.preset_zone = "Residential"
+            st.session_state.preset_weekend = False
+            st.session_state.preset_lag1 = 2600.0
+            st.session_state.preset_lag24 = 2650.0
+            st.rerun()
+
+    with p2:
+        if st.button("🏢 Cyber City MNC Afternoon (2 PM)", use_container_width=True):
+            st.session_state.preset_hour = 14
+            st.session_state.preset_temp = 35.0
+            st.session_state.preset_humidity = 55.0
+            st.session_state.preset_pop = 15000
+            st.session_state.preset_cap = 3500.0
+            st.session_state.preset_zone = "Commercial / MNC Hub"
+            st.session_state.preset_weekend = False
+            st.session_state.preset_lag1 = 2800.0
+            st.session_state.preset_lag24 = 2750.0
+            st.rerun()
+
+    with p3:
+        if st.button("🌱 Monsoon Normal Evening (25°C, 7 PM)", use_container_width=True):
+            st.session_state.preset_hour = 19
+            st.session_state.preset_temp = 25.0
+            st.session_state.preset_humidity = 82.0
+            st.session_state.preset_pop = 22000
+            st.session_state.preset_cap = 2500.0
+            st.session_state.preset_zone = "Residential"
+            st.session_state.preset_weekend = True
+            st.session_state.preset_lag1 = 1100.0
+            st.session_state.preset_lag24 = 1150.0
+            st.rerun()
+
+    st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+    
     col_input, col_out = st.columns([5, 4])
     
     with col_input:
@@ -372,32 +428,33 @@ with tab3:
         c1, c2 = st.columns(2)
         with c1:
             input_date = st.date_input("Forecast Date", datetime(2025, 7, 15))
-            input_hour = st.slider("Hour of Day", 0, 23, 19)
-            temp_c = st.slider("Ambient Temperature (°C)", -5.0, 48.0, 34.0, step=0.5)
-            humidity = st.slider("Relative Humidity (%)", 10.0, 100.0, 65.0, step=1.0)
+            input_hour = st.slider("Hour of Day", 0, 23, st.session_state.preset_hour)
+            temp_c = st.slider("Ambient Temperature (°C)", -5.0, 48.0, st.session_state.preset_temp, step=0.5)
+            humidity = st.slider("Relative Humidity (%)", 10.0, 100.0, st.session_state.preset_humidity, step=1.0)
         with c2:
             solar = st.slider("Solar Irradiance (W/m²)", 0.0, 1000.0, 350.0, step=10.0)
             wind = st.slider("Wind Speed (km/h)", 0.0, 60.0, 12.0, step=1.0)
-            is_weekend = st.checkbox("Is Weekend?", value=False)
+            is_weekend = st.checkbox("Is Weekend?", value=st.session_state.preset_weekend)
             is_holiday = st.checkbox("Is Public Holiday?", value=False)
             
         st.markdown("**Demographics & Local Grid (Indian Context)**")
         dc1, dc2 = st.columns(2)
         with dc1:
-            population = st.slider("Zone Population", 1000, 100000, 25000, step=1000)
-            transformer_cap = st.slider("Transformer Capacity (kWh)", 1000.0, 8000.0, 2500.0, step=100.0)
+            population = st.slider("Zone Population", 1000, 100000, st.session_state.preset_pop, step=1000)
+            transformer_cap = st.slider("Transformer Capacity (kWh)", 1000.0, 8000.0, st.session_state.preset_cap, step=100.0)
         with dc2:
-            zone_type = st.radio("Zone Type", ["Residential", "Commercial / MNC Hub"])
+            zone_idx = 1 if st.session_state.preset_zone == "Commercial / MNC Hub" else 0
+            zone_type = st.radio("Zone Type", ["Residential", "Commercial / MNC Hub"], index=zone_idx)
             is_mnc = 1 if zone_type == "Commercial / MNC Hub" else 0
             
         st.markdown("**Time Series Lag Memory (kWh)**")
         lc1, lc2 = st.columns(2)
         with lc1:
-            lag_1 = st.number_input("Load at t-1 (Previous Hour)", value=1200.0, step=100.0)
-            lag_2 = st.number_input("Load at t-2 (2 Hours Ago)", value=1150.0, step=100.0)
+            lag_1 = st.number_input("Load at t-1 (Previous Hour)", value=st.session_state.preset_lag1, step=100.0)
+            lag_2 = st.number_input("Load at t-2 (2 Hours Ago)", value=max(500.0, st.session_state.preset_lag1 - 50.0), step=100.0)
         with lc2:
-            lag_24 = st.number_input("Load at t-24 (Yesterday Same Hour)", value=1250.0, step=100.0)
-            lag_168 = st.number_input("Load at t-168 (Last Week Same Hour)", value=1200.0, step=100.0)
+            lag_24 = st.number_input("Load at t-24 (Yesterday Same Hour)", value=st.session_state.preset_lag24, step=100.0)
+            lag_168 = st.number_input("Load at t-168 (Last Week Same Hour)", value=max(500.0, st.session_state.preset_lag24 - 50.0), step=100.0)
             
         roll_mean_6 = (lag_1 + lag_2) / 2.0
         roll_mean_24 = lag_24 * 0.95
@@ -536,6 +593,48 @@ with tab3:
             plot_bgcolor="rgba(0,0,0,0)"
         )
         st.plotly_chart(fig_gauge, use_container_width=True)
+
+        # Feature 1: Transformer Thermal Health & Accelerated Aging Rate (IEEE C57 Standard Principle)
+        load_ratio = pred_kwh / max_capacity
+        if load_ratio <= 0.75 and temp_c <= 32:
+            aging_factor = round(0.5 + 0.5 * load_ratio, 1)
+            health_badge = "OPTIMAL"
+            health_desc = "Normal winding temperature (~65°C). Minimal thermal wear."
+            health_color = "#34d399"
+            badge_bg = "rgba(16, 185, 129, 0.2)"
+        elif load_ratio <= 0.95:
+            temp_penalty = max(0.0, (temp_c - 30.0) * 0.15)
+            aging_factor = round(1.0 + (load_ratio - 0.75) * 8.0 + temp_penalty, 1)
+            health_badge = "MODERATE WEAR"
+            health_desc = "Accelerated oil insulation heating (~85°C). Maintenance window shortens."
+            health_color = "#fbbf24"
+            badge_bg = "rgba(245, 158, 11, 0.2)"
+        else:
+            temp_penalty = max(0.0, (temp_c - 30.0) * 0.35)
+            aging_factor = round(4.0 + (load_ratio - 0.95) * 18.0 + temp_penalty, 1)
+            health_badge = "CRITICAL THERMAL STRESS"
+            health_desc = "Extreme coil winding breakdown risk (~115°C+). Oil breakdown imminent!"
+            health_color = "#f87171"
+            badge_bg = "rgba(239, 68, 68, 0.2)"
+
+        st.markdown(f"""
+        <div style="background: #1e293b; border-radius: 12px; padding: 18px; border: 1px solid #334155; margin-top: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-weight: 700; color: #cbd5e1; font-size: 0.95rem;">
+                    🌡️ Transformer Health & Accelerated Aging Rate
+                </div>
+                <div style="background: {badge_bg}; color: {health_color}; border: 1px solid {health_color}; font-weight: 800; padding: 4px 10px; border-radius: 8px; font-size: 0.85rem;">
+                    {aging_factor:.1f}x Wear Rate ({health_badge})
+                </div>
+            </div>
+            <div style="color: {health_color}; font-size: 0.85rem; margin-top: 8px; font-weight: 600;">
+                {health_desc}
+            </div>
+            <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 6px; line-height: 1.4;">
+                <b>Predictive Maintenance Insight:</b> At current load ({load_pct:.1f}%) and ambient temperature ({temp_c}°C), transformer insulation degrades <b>{aging_factor:.1f} times faster</b> than manufacturer baseline.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ==========================================
 # TAB 4: FEATURE ENGINEERING & IMPORTANCE

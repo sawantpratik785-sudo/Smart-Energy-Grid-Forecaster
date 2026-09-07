@@ -8,11 +8,11 @@
 
 ### What to say to your Teacher or Evaluation Panel:
 
-> *"Good morning respected faculty and evaluators. Our project, **Smart Energy Grid Peak-Demand Forecaster**, addresses a multi-million dollar logistics problem in power distribution: short-term electricity load forecasting ($kWh$) and blackout prevention.*
+> *"Good morning respected faculty and evaluators. Our project, **Smart Energy Grid Forecaster: Transformer Overload & Automated Load Balancing**, addresses a critical infrastructure problem in power distribution: localized electricity load forecasting ($kWh$) and transformer blast prevention.*
 >
-> *Because bulk electricity cannot be easily stored, power grids must match supply with demand in real time. We engineered a time-aware Machine Learning pipeline using **Time-Series Lag Feature Engineering** paired with **Gradient Boosting Regressors**.*
+> *In countries like India, localized demand spikes—driven by high population density, heavy commercial/MNC hubs, and severe summer heatwaves—routinely overload neighborhood distribution transformers, causing fires and unscheduled blackouts. We engineered a time-aware Machine Learning pipeline using **Time-Series Lag Feature Engineering** combined with **Demographic & Zoning Indicators** (Population, MNC zones, and Population-Temperature indexing).*
 >
-> *Our champion model achieves an **$R^2$ score of 0.8784** and a **MAPE of 3.10%**, outperforming a Naïve Baseline rule by **over 60%** and saving an estimated **$963,688 / year** in grid operational error penalties. The system powers an interactive Streamlit web dashboard with real-time **High-Risk Peak Blackout Alerts**."*
+> *Our champion Gradient Boosting model achieves an **$R^2$ score of 0.8042** and a **MAPE of 6.22%**, drastically outperforming the Naïve Baseline rule and saving an estimated **$210,930 / year** in grid error penalties. The system powers an interactive Streamlit web dashboard with real-time **Transformer Blast Warnings** and **Automated Load Shedding Recommendations**."*
 
 ---
 
@@ -21,23 +21,24 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ 1. DATA GENERATION & INGESTION (data/generate_dataset.py)                │
-│    8,760 Hourly Observations (1 Year) with Temperature, Humidity, Solar │
+│    26,280 Hourly Observations (3 Zones: Residential, Commercial/MNC,    │
+│    Industrial) with Temperature, Humidity, Population & Transformer Caps│
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ 2. TIME-SERIES FEATURE ENGINEERING (src/features.py)                   │
-│    - Cyclic Hour/Month Encodings [Sin(Hour), Cos(Hour)]                 │
-│    - Memory Lag Features [t-1, t-2, t-24, t-168]                       │
-│    - 24-Hour Rolling Window Statistics (Mean & Std Dev)                 │
-│    - Non-Linear HVAC Interactions [Temperature²]                        │
+│ 2. TIME-SERIES & SOCIO-DEMOGRAPHIC FEATURE PIPELINE (src/features.py)  │
+│    - Memory Lag Features [t-1, t-2, t-24, t-168 grouped by Zone]        │
+│    - Cyclic Hour/Month Encodings [Sin/Cos Hour & Month]                 │
+│    - 24-Hour Rolling Window Statistics (Mean & Std Dev per Zone)        │
+│    - Socio-Meteorological Transforms [Population-Temperature Index]     │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ 3. CHRONOLOGICAL TRAIN-TEST SPLIT & SCALING (src/train.py)               │
-│    - First 80% (6,873 samples) ──► Training Set                        │
-│    - Final 20% (1,719 samples) ──► Unseen Test Set (Zero Data Leakage)  │
+│    - First 80% (20,620 samples) ──► Training Set                       │
+│    - Final 20% (5,156 samples)  ──► Unseen Test Set (No Data Leakage)   │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -47,17 +48,16 @@
 │    - Ridge Regression (Linear Baseline)                                 │
 │    - Random Forest Regressor (Bagging Ensemble)                         │
 │    - HistGradientBoosting Regressor (Boosting Ensemble - Champion)      │
-│    - Annual Financial Savings Calculations ($963,688 / yr saved)       │
+│    - Annual Financial Savings Calculations ($210,930 / yr saved)        │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ 5. INTERACTIVE GLASSMORPHIC WEB DASHBOARD (app.py & style.css)          │
-│    - Tab 1: Capstone Overview & Viva Q&A Guide                          │
-│    - Tab 2: Model Benchmarking & Residual Error Histograms              │
-│    - Tab 3: Live 24h Predictor with 1-Click Presets & Peak Strain Alert │
-│    - Tab 4: Feature Importance & Single-Hour SHAP Waterfall Explainer   │
-│    - Tab 5: 24-Hour Weather Stress Simulator                            │
+│ 5. REAL-TIME DECISION SUPPORT DASHBOARD (app.py)                        │
+│    - Live Forecaster with Demographic & Zoning Sliders                  │
+│    - Real-Time Transformer Blast / Short-Circuit Risk Alert             │
+│    - Targeted Load Shedding Calculation (Exact kWh to Shed)             │
+│    - Model Benchmarking, Residual Analysis & Feature Importance View    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 

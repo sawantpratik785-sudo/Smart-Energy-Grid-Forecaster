@@ -75,23 +75,26 @@ We compare 3 model architectures:
 
 ### Metric Definitions:
 - **$R^2$ Score (Coefficient of Determination)**: Higher is better ($0$ to $1.0$).
-  - *$R^2 = 0.878$ means our features explain $87.8\%$ of electricity demand variations.*
-- **$RMSE$ (Root Mean Squared Error)**: Average error in $kWh$. Heavily penalizes large mistakes.
-- **$MAE$ (Mean Absolute Error)**: The actual average number of $kWh$ our prediction is off by.
-- **$MAPE$ (Mean Absolute Percentage Error)**: Average percentage error ($3.1\%$ error is considered industry-grade!).
+  - *$R^2 = 0.8042$ means our features explain $80.4\%$ of electricity demand variations across mixed demographic zones.*
+- **$RMSE$ (Root Mean Squared Error)**: $284.8\text{ kWh}$. Heavily penalizes large mistakes.
+- **$MAE$ (Mean Absolute Error)**: $146.1\text{ kWh}$. The actual average load error.
+- **$MAPE$ (Mean Absolute Percentage Error)**: $6.22\%$ (industry-grade for multi-zone grid forecasting!).
 
 ---
 
 ## 5. College Viva / Panel Interview Q&A Cheatsheet
 
 ### Q1: "Why did you use regression instead of time-series ARIMA/LSTM?"
-> **Answer**: "While LSTM neural networks work well, they require heavy computational power and long training times. By engineering explicit time-series lag features ($t-1, t-24$, rolling averages), Gradient Boosting decision trees achieve an $R^2$ of **0.878** and MAPE of **3.1%** with sub-millisecond prediction latency, making it ideal for real-time edge deployment."
+> **Answer**: "While LSTM neural networks work well, they require heavy computational power, high memory, and long training times. By engineering explicit time-series lag features ($t-1, t-24$, rolling averages) and demographic indices, Gradient Boosting achieves an $R^2$ of **0.8042** and MAPE of **6.22%** with sub-millisecond prediction latency, making it ideal for real-time edge deployment on substation SCADA systems."
 
 ### Q2: "How did you prevent data leakage in your lag features?"
-> **Answer**: "All lag and rolling statistics are calculated by shifting only past values (`shift(1)`, `shift(24)`). Furthermore, feature scaling (`StandardScaler`) was fitted ONLY on the chronological 80% training set and then applied to the 20% test set."
+> **Answer**: "All lag and rolling statistics are calculated strictly on past values (`shift(1)`, `shift(24)`) grouped by `zone_id`. Furthermore, the chronological 80/20 split ensures the model never peeks into future timestamps, and feature scaling (`StandardScaler`) was fitted ONLY on the chronological 80% training set."
 
-### Q3: "What happens when temperature reaches 40°C?"
-> **Answer**: "We engineered a quadratic feature $\text{Temperature}^2$ and an extreme temperature indicator ($\text{Temp} > 32^\circ\text{C}$). This captures the non-linear exponential increase in electricity consumption due to air-conditioning demand."
+### Q3: "What makes this particularly relevant to the Indian electrical grid?"
+> **Answer**: "In India, rapid urbanization and summer heatwaves routinely cause distribution transformers to explode or fail due to sudden overloads. Instead of waiting for a blast and reacting with emergency blackouts, our system predicts the exact hour a transformer will exceed 100% capacity and automatically calculates the minimum required Load Shedding (in kWh) to prevent physical failure."
 
-### Q4: "How does the Streamlit app help grid operators?"
-> **Answer**: "The dashboard provides live 24-hour forecasting, feature importance breakdowns, and an automated Peak Strain Alert system that triggers a high-risk alert when predicted demand crosses 85% of grid capacity ($38,000\text{ kWh}$)."
+### Q4: "How do population density and MNC hubs impact the forecast?"
+> **Answer**: "Commercial/MNC hubs exhibit sharp peaks during daytime office hours (9 AM - 6 PM) with weekend drops, whereas residential zones peak in the early morning and late evening when people return home and turn on ACs. By feeding `population` and `is_mnc_zone` into the model, the trees learn different consumption dynamics per zone."
+
+### Q5: "How does the Streamlit app help grid operators?"
+> **Answer**: "The dashboard provides real-time forecasting, interactive demographic sliders, model benchmarking, feature importance analyses, and an automated Transformer Blast Risk alert that recommends targeted load shedding amounts."

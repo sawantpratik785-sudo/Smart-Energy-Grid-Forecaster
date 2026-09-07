@@ -1148,7 +1148,7 @@
     },
     "Random Forest": {
       "train_metrics": {
-        "rmse": 171.1692829237294,
+        "rmse": 171.16928292372938,
         "mae": 104.80716420457695,
         "r2": 0.9783187556774096,
         "mape": 5.2766275801090785
@@ -2266,6 +2266,6 @@
     "annual_savings_vs_naive": 210930.71446531452,
     "annual_savings_vs_ridge": 43172.537798920865
   },
-  "grid_capacity_max_kwh": 50000.0,
-  "peak_demand_threshold_kwh": 38000.0
+  "grid_capacity_max_kwh": 9657.9,
+  "peak_demand_threshold_kwh": 3837.2
 }

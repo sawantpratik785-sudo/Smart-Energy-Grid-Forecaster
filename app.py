@@ -208,17 +208,19 @@ with tab1:
     col1, col2 = st.columns([3, 2])
     with col1:
         st.markdown("""
-        ### Problem Context & Significance
-        Electricity generation must equal consumption in real-time across regional grids. Sudden demand spikes (e.g. during heatwaves or extreme weather) can overwhelm substations, cause high peak-demand tariffs, or lead to catastrophic blackouts.
+        ### Problem Context & Significance (Indian Smart Grid Context)
+        In rapidly developing economies like India, localized electricity demand surges—intensified by high population density, heavy commercial/MNC hubs, and severe summer heatwaves—routinely overload neighborhood distribution transformers.
+        
+        This leads to catastrophic transformer blasts, short circuits, and unscheduled blackouts. Traditional approaches rely on reactive load shedding *after* damage has occurred.
         
         **The AIML Solution**:
-        Rather than relying on computationally heavy deep learning (LSTM/RNN) models, this capstone project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling window metrics, and cyclic time encodings) allows supervised tree and linear models to achieve high accuracy ($R^2 > 0.95$) with sub-millisecond inference latency suitable for real-time grid control.
+        This project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling stats, cyclic time encodings) combined with **Demographic & Zoning Indicators** (Population Density, MNC Commercial Hubs, Population-Temperature Index) allows supervised regression models to predict transformer strain in advance with sub-millisecond inference latency, enabling proactive, targeted load shedding to prevent transformer fires.
         
         ### 🎓 Academic Metadata
-        - **Domain**: Smart Grid Logistics & Energy Management  
-        - **Pipeline**: Time-Series Lag Engineering + Chronological ML  
+        - **Domain**: Smart Grid Logistics & Infrastructure Protection  
+        - **Pipeline**: Time-Series Lag Engineering + Socio-Demographic Features + Chronological ML  
         - **Evaluation Metrics**: RMSE, MAE, R², MAPE  
-        - **Primary Models**: Ridge, Random Forest, HistGradientBoosting
+        - **Primary Models**: Ridge Regression, Random Forest, Gradient Boosting
         
         ### 👥 Team Members
         - **Pratik Sawant** (20240802324)
@@ -231,10 +233,10 @@ with tab1:
         <div style="background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155;">
             <h4 style="color: #38bdf8; margin-top: 0;">🎓 Capstone Highlights</h4>
             <ul>
-                <li><b>Chronological Train-Test Split (80/20)</b> prevents data leakage across time boundaries.</li>
-                <li><b>24 Feature Pipeline</b> combining lagged metrics, weather parameters, and cyclic encodings.</li>
-                <li><b>Multi-Model Comparison</b>: Linear/Ridge Baseline vs. Random Forest vs. Gradient Boosting.</li>
-                <li><b>Automated Grid Alert System</b>: Categorizes predicted demand into Normal, Warning, or Critical Peak Strain.</li>
+                <li><b>Multi-Zone Demographic Simulation</b>: Residential, Commercial/MNC, and Industrial sectors with realistic population scaling.</li>
+                <li><b>Chronological Train-Test Split (80/20)</b>: Strictly prevents temporal data leakage across time boundaries.</li>
+                <li><b>27 Feature Pipeline</b>: Combining memory lags, rolling stats, cyclic encodings, and socio-meteorological interaction features.</li>
+                <li><b>Transformer Blast Risk & Load Shedding</b>: Automated calculation of exact kWh reduction needed to prevent transformer meltdown.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -244,16 +246,16 @@ with tab1:
     
     st.markdown("""
     ```
-    ┌─────────────────────────┐      ┌──────────────────────────────┐      ┌─────────────────────────────┐
-    │  1-Year Hourly Dataset  │ ───► │  Lag Feature Engineering     │ ───► │ Chronological Split (80/20) │
-    │  (8,760 observations)   │      │  (t-1, t-24, rolling mean)  │      │ (No Temporal Data Leakage)  │
-    └─────────────────────────┘      └──────────────────────────────┘      └─────────────────────────────┘
-                                                                                      │
-                                                                                      ▼
-    ┌─────────────────────────┐      ┌──────────────────────────────┐      ┌─────────────────────────────┐
-    │ Streamlit Live Web App  │ ◄─── │ Model Export (.joblib)       │ ◄─── │ Benchmarking & Evaluation   │
-    │ (5 Interactive Tabs)    │      │ (Ridge, Random Forest, GB)   │      │ (RMSE, MAE, R², MAPE)       │
-    └─────────────────────────┘      └──────────────────────────────┘      └─────────────────────────────┘
+    ┌──────────────────────────────────┐      ┌──────────────────────────────────┐      ┌─────────────────────────────┐
+    │ Multi-Zone Grid & Weather Data   │ ───► │ Socio-Temporal Lag Engineering   │ ───► │ Chronological Split (80/20) │
+    │ (26,280 obs: Pop, MNC, Weather)  │      │ (Lags, Pop-Temp Index, Rolling)  │      │ (Zero Temporal Leakage)     │
+    └──────────────────────────────────┘      └──────────────────────────────────┘      └─────────────────────────────┘
+                                                                                                       │
+                                                                                                       ▼
+    ┌──────────────────────────────────┐      ┌──────────────────────────────────┐      ┌─────────────────────────────┐
+    │ Streamlit Live Web App           │ ◄─── │ Model Export (.joblib)           │ ◄─── │ Benchmarking & Evaluation   │
+    │ (Transformer Blast Early Warning)│      │ (Ridge, Random Forest, GB)       │      │ (RMSE, MAE, R², MAPE)       │
+    └──────────────────────────────────┘      └──────────────────────────────────┘      └─────────────────────────────┘
     ```
     """)
     
@@ -305,7 +307,7 @@ with tab2:
             color='Model', text='R² Score',
             color_discrete_sequence=['#38bdf8', '#818cf8', '#34d399']
         )
-        fig_r2.update_layout(yaxis_range=[0.8, 1.0], showlegend=False, template="plotly_dark", height=280)
+        fig_r2.update_layout(yaxis_range=[0.0, 1.0], showlegend=False, template="plotly_dark", height=280)
         st.plotly_chart(fig_r2, use_container_width=True)
 
     st.markdown("---")
@@ -324,7 +326,8 @@ with tab2:
         preds = m_res['sample_predictions']['predicted']
         fig_time.add_trace(go.Scatter(x=timestamps, y=preds, mode='lines', name=f'{m_name} Pred', line=dict(color=colors[m_name], width=1.5, dash='dash')))
         
-    fig_time.add_hline(y=meta['peak_demand_threshold_kwh'], line_dash="dot", line_color="#ef4444", annotation_text="Peak Demand Warning (38,000 kWh)")
+    peak_thresh = meta.get('peak_demand_threshold_kwh', 3500.0)
+    fig_time.add_hline(y=peak_thresh, line_dash="dot", line_color="#ef4444", annotation_text=f"Peak Demand Warning ({peak_thresh:,.0f} kWh)")
     fig_time.update_layout(
         xaxis_title="Timestamp (Hourly)",
         yaxis_title="Load (kWh)",
@@ -445,6 +448,7 @@ with tab3:
             pred_kwh = float(selected_model.predict(input_df)[0])
             
         max_capacity = transformer_cap
+        peak_threshold = max_capacity * 0.90
         load_pct = (pred_kwh / max_capacity) * 100.0
         
         st.markdown(f"""
@@ -485,23 +489,24 @@ with tab3:
             """, unsafe_allow_html=True)
 
         # Gauge Chart
+        gauge_max = max(max_capacity * 1.25, pred_kwh * 1.1)
         fig_gauge = go.Figure(go.Indicator(
             mode = "gauge+number",
             value = pred_kwh,
             domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Grid Load Level (kWh)"},
+            title = {'text': "Transformer Load vs Blast Limit (kWh)"},
             gauge = {
-                'axis': {'range': [0, max_capacity]},
+                'axis': {'range': [0, gauge_max]},
                 'bar': {'color': "#38bdf8"},
                 'steps': [
-                    {'range': [0, peak_threshold * 0.85], 'color': "rgba(16, 185, 129, 0.2)"},
-                    {'range': [peak_threshold * 0.85, peak_threshold], 'color': "rgba(245, 158, 11, 0.2)"},
-                    {'range': [peak_threshold, max_capacity], 'color': "rgba(239, 68, 68, 0.3)"}
+                    {'range': [0, max_capacity * 0.85], 'color': "rgba(16, 185, 129, 0.25)"},
+                    {'range': [max_capacity * 0.85, max_capacity], 'color': "rgba(245, 158, 11, 0.25)"},
+                    {'range': [max_capacity, gauge_max], 'color': "rgba(239, 68, 68, 0.35)"}
                 ],
                 'threshold': {
-                    'line': {'color': "red", 'width': 4},
+                    'line': {'color': "#ef4444", 'width': 4},
                     'thickness': 0.75,
-                    'value': peak_threshold
+                    'value': max_capacity
                 }
             }
         ))
@@ -533,9 +538,10 @@ with tab4:
     with col2:
         st.subheader("💡 Key Academic Insights")
         st.markdown("""
-        - **Dominance of Lagged Memory**: `load_lag_1` (t-1) and `load_lag_24` (t-24 yesterday) account for **over 60% of predictive power**.
-        - **Diurnal Cycles**: Cyclic sine/cosine features (`sin_hour`, `cos_hour`) capture smooth non-linear transitions without arbitrary step discontinuities.
-        - **HVAC Non-Linearity**: `temp_squared` captures the exponential rise in electricity consumption during extreme summer heatwaves (>35°C).
+        - **Dominance of Lagged Memory**: `load_lag_1` (t-1) and `load_lag_24` (t-24 yesterday) account for strong short-term inertia and diurnal patterns.
+        - **Socio-Demographic Scaling**: `population`, `is_mnc_zone`, and `pop_temp_idx` empower the model to differentiate between residential vs. high-intensity commercial peak hours.
+        - **Diurnal Cycles**: Cyclic sine/cosine features (`sin_hour`, `cos_hour`) capture smooth 24-hour transitions without arbitrary boundary discontinuities.
+        - **HVAC Non-Linearity**: `temp_squared` captures the exponential spike in electricity demand during extreme summer heatwaves (>35°C).
         """)
         st.dataframe(df_imp.sort_values('Importance', ascending=False), use_container_width=True, hide_index=True)
 

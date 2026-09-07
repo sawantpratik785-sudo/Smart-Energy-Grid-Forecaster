@@ -1,39 +1,45 @@
-# ⚡ Smart Energy Grid Peak-Demand Forecaster
-**3rd Year AIML Capstone Project** | Short-Term Electricity Load & Peak Strain Forecasting Pipeline
+# ⚡ Smart Energy Grid Forecaster
+### 🏆 3rd Year AIML Capstone Project: Transformer Overload Prediction & Automated Load Balancing
 
 ---
 
-## 📌 Executive Summary
-Electrical grids require continuous, real-time balance between power generation and demand. Unexpected demand surges lead to costly peak-tariff penalties or catastrophic grid blackouts. This Capstone Project implements a machine learning system that uses **time-series lag feature engineering** ($t-1, t-2, t-24, t-168$, 24-hour rolling metrics, and cyclic time encodings) paired with supervised regression models (**Ridge Regression**, **Random Forest**, and **Gradient Boosting**) to accurately forecast grid load (kWh) and trigger automated peak-demand alerts.
+## 📌 Project Overview & Significance
+In rapidly developing power networks (such as India's regional grids), localized electricity demand surges—intensified by dense residential populations, commercial/MNC hubs, and severe summer heatwaves—routinely exceed physical transformer capacity. This triggers catastrophic transformer fires, short circuits, and unscheduled blackouts.
+
+Traditional distribution management is reactive: power is cut *after* a transformer trips or fails. 
+
+**Our AIML Solution**:
+We built an end-to-end Machine Learning pipeline using **Time-Series Lag Feature Engineering** coupled with **Socio-Demographic & Zoning Indicators** (Population Density, MNC commercial zones, Population-Temperature interactions). Supervised regression models (**Ridge Regression**, **Random Forest**, and **HistGradientBoosting**) predict short-term localized demand with sub-millisecond inference latency, enabling proactive early warnings and automated, targeted **Load Shedding recommendations** before physical equipment damage occurs.
 
 ---
 
-## 🏗️ Capstone Architecture & Workflow
+## 🏗️ System Architecture & Workflow
 ```
-[ Hourly Grid & Weather Data ]
-             │
-             ▼
-[ Time-Series Lag Feature Engineering ] ➔ (t-1, t-24, rolling statistics, cyclic hour/month)
-             │
-             ▼
-[ Chronological 80/20 Train-Test Split ] ➔ (Zero Temporal Data Leakage)
-             │
-             ▼
-[ Model Benchmarking & Metric Evaluation ] ➔ (RMSE, MAE, R², MAPE)
-             │
-             ▼
-[ Artifact Serialization (.joblib) ] ➔ (Scalers, Models, Metadata)
-             │
-             ▼
-[ Interactive Streamlit Web App ] ➔ (5 Capstone Presentation Tabs)
+[ 3-Zone Synthetic Grid Data (26,280 obs: Residential, MNC Hub, Industrial) ]
+                                    │
+                                    ▼
+[ Socio-Temporal Feature Engineering ] ➔ (t-1, t-24, rolling statistics, Pop-Temp Index)
+                                    │
+                                    ▼
+[ Chronological 80/20 Train-Test Split ] ➔ (Strictly Prevents Temporal Data Leakage)
+                                    │
+                                    ▼
+[ Multi-Model Benchmarking & Financial Impact ] ➔ (RMSE, MAE, R², MAPE, Annual Cost Savings)
+                                    │
+                                    ▼
+[ Artifact Serialization (.joblib) ] ➔ (Fitted Scalers, Models, Pipeline Metadata)
+                                    │
+                                    ▼
+[ Streamlit Real-Time Decision Support Dashboard ] ➔ (Blast Risk Warnings & Load Shedding UI)
 ```
 
 ---
 
-## 🎓 Academic Novelty & AIML Key Takeaways
-1. **Chronological Splitting vs. Random Split**: Standard random train-test splitting introduces severe temporal data leakage in time-series data. This project strictly enforces chronological splitting.
-2. **Lag Features vs. Complex Deep Learning**: Demonstrates how domain-engineered features ($t-1$, $t-24$, rolling 24h mean) allow lightweight tree algorithms to achieve **$R^2 > 0.95$** with sub-millisecond inference latency.
-3. **HVAC Non-Linearity**: Modeled through quadratic temperature features ($\text{Temperature}^2$), capturing exponential air-conditioning load spikes during summer heatwaves (>32°C).
+## 🎓 Academic Novelty & AIML Key Highlights
+1. **Chronological Splitting vs. Random Shuffle**: Standard random splitting in time series causes severe temporal data leakage. We enforce strict chronological partitioning (first 80% train, last 20% unseen test).
+2. **Socio-Demographic Feature Injection**: Beyond pure time and weather, incorporating `population`, `is_mnc_zone`, and `pop_temp_idx` allows tree ensembles to capture differing peak schedules (daytime commercial vs. evening residential).
+3. **Actionable Decision Support**: Rather than outputting raw kWh numbers alone, the pipeline computes the gap between predicted demand and transformer capacity, prescribing exact targeted load shedding amounts to prevent transformer fires.
+4. **Lightweight Edge Inference**: Sub-millisecond prediction latency suitable for deployment on low-cost SCADA / IoT substation controllers without requiring heavy GPUs.
 
 ---
 
@@ -44,7 +50,7 @@ Electrical grids require continuous, real-time balance between power generation 
 pip install -r requirements.txt
 ```
 
-### 2. Generate Synthetic Smart Grid Dataset
+### 2. Generate Multi-Zone Smart Grid Dataset
 ```bash
 python data/generate_dataset.py
 ```
@@ -54,19 +60,23 @@ python data/generate_dataset.py
 python src/train.py
 ```
 
-### 4. Launch Interactive Web App
+### 4. Launch Interactive Web Dashboard
 ```bash
 streamlit run app.py
 ```
+*(Runs locally at `http://localhost:8501`)*
 
 ---
 
-## 📊 Evaluation Metrics Summary
-| Model Architecture | RMSE (kWh) | MAE (kWh) | R² Score | MAPE (%) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Ridge Regression** (Baseline) | ~1,850 | ~1,420 | 0.9250 | ~5.8% |
-| **Random Forest Regressor** | ~1,210 | ~890 | 0.9680 | ~3.4% |
-| **Gradient Boosting Regressor** | **~1,050** | **~780** | **0.9760** | **~2.9%** |
+## 📊 Evaluation Metrics Summary (Test Set)
+| Model Architecture | Test RMSE (kWh) | Test MAE (kWh) | Test R² Score | Test MAPE (%) | Est. Annual Penalty ($) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Naïve Baseline ($t-24$)** | 687.05 | 447.11 | -0.1396 | 21.79% | $313,337 |
+| **Ridge Regression** | 340.61 | 207.73 | 0.7199 | 9.25% | $145,579 |
+| **Random Forest Regressor** | 294.62 | 155.63 | 0.7904 | 6.70% | $109,062 |
+| **Gradient Boosting (Champion)** | **284.81** | **146.13** | **0.8042** | **6.22%** | **$102,406** |
+
+> 💰 **Financial Impact**: The Gradient Boosting model delivers **$210,930 / year in cost savings** over the naïve rule and **$43,172 / year** over linear ridge regression.
 
 ---
 
@@ -74,13 +84,23 @@ streamlit run app.py
 ```
 energy_grid_forecaster/
 ├── data/
-│   ├── generate_dataset.py       # 1-year hourly smart grid data generator
-│   └── energy_grid_hourly.csv    # 8,760 observation dataset
+│   ├── generate_dataset.py       # Multi-zone demographic & meteorological generator
+│   └── energy_grid_hourly.csv    # 26,280 observation dataset (3 zones)
 ├── src/
-│   ├── features.py               # Time-series lag feature pipeline
-│   └── train.py                  # Chronological training & .joblib model exporter
-├── models/                       # Binary model artifacts & metadata
-├── app.py                        # Streamlit 5-Tab Interactive Web Application
+│   ├── features.py               # Socio-temporal lag engineering module
+│   └── train.py                  # Chronological training & .joblib exporter
+├── models/                       # Serialized models (.joblib) and metadata JSON
+├── app.py                        # Streamlit 4-Tab Decision Support Web Application
+├── style.css                     # Custom glassmorphic stylesheet & animations
 ├── requirements.txt              # Project dependencies
-└── README.md                     # Capstone documentation
+├── CAPSTONE_FINAL_PRESENTATION.md# Complete presentation & viva blueprint
+├── CAPSTONE_EXPLAINER.md         # Plain-English viva Q&A guide
+└── README.md                     # Master project documentation
 ```
+
+---
+
+## 👥 Project Contributors
+- **Pratik Sawant** (20240802324)
+- **Pranav Karne** (20240802356)
+- **Amar Nimbalkar** (20240802392)

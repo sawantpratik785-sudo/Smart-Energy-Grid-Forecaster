@@ -141,6 +141,8 @@ def run_training_pipeline():
     joblib.dump(fitted_models['Gradient Boosting'], os.path.join(models_dir, 'model_gb.joblib'))
 
     # Save Pipeline Metadata JSON
+    max_kwh = float(df_processed['load_kwh'].max())
+    peak_kwh = float(df_processed['load_kwh'].quantile(0.92))
     pipeline_meta = {
         'feature_columns': FEATURE_COLUMNS,
         'train_samples': len(X_train),
@@ -151,8 +153,8 @@ def run_training_pipeline():
             'annual_savings_vs_naive': float(annual_savings_vs_naive),
             'annual_savings_vs_ridge': float(annual_savings_vs_ridge)
         },
-        'grid_capacity_max_kwh': 50000.0,
-        'peak_demand_threshold_kwh': 38000.0
+        'grid_capacity_max_kwh': round(max_kwh * 1.15, 1),
+        'peak_demand_threshold_kwh': round(peak_kwh, 1)
     }
 
     with open(os.path.join(models_dir, 'pipeline_meta.json'), 'w') as f:

@@ -87,6 +87,8 @@ st.markdown("""
         border-radius: 10px;
         font-weight: 700;
         text-align: center;
+        margin-top: 10px !important;
+        margin-bottom: 20px !important;
     }
     
     .status-warning {
@@ -97,6 +99,8 @@ st.markdown("""
         border-radius: 10px;
         font-weight: 700;
         text-align: center;
+        margin-top: 10px !important;
+        margin-bottom: 20px !important;
     }
     
     .status-critical {
@@ -107,6 +111,8 @@ st.markdown("""
         border-radius: 10px;
         font-weight: 700;
         text-align: center;
+        margin-top: 10px !important;
+        margin-bottom: 20px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -177,7 +183,7 @@ b64_img = get_base64_image(os.path.join(DATA_DIR, "CapstoneOverview.webp"))
 st.markdown(f"""
 <style>
 .stApp {{
-    background-image: linear-gradient(rgba(11, 15, 25, 0.8), rgba(11, 15, 25, 0.8)), url("data:image/webp;base64,{b64_img}");
+    background-image: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), url("data:image/webp;base64,{b64_img}");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -488,16 +494,28 @@ with tab3:
             </div>
             """, unsafe_allow_html=True)
 
-        # Gauge Chart
-        gauge_max = max(max_capacity * 1.25, pred_kwh * 1.1)
+        # Gauge Chart with ample margin and crisp font formatting to prevent overlap
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+        gauge_max = round(max(max_capacity * 1.25, pred_kwh * 1.15), -1)
         fig_gauge = go.Figure(go.Indicator(
             mode = "gauge+number",
             value = pred_kwh,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Transformer Load vs Blast Limit (kWh)"},
+            number = {
+                'font': {'size': 26, 'color': '#38bdf8', 'family': 'Space Grotesk, sans-serif'},
+                'suffix': ' kWh',
+                'valueformat': ',.1f'
+            },
+            domain = {'x': [0.05, 0.95], 'y': [0.0, 0.78]},
+            title = {
+                'text': "<b>Transformer Load vs Blast Limit</b>",
+                'font': {'size': 14, 'color': '#94a3b8'}
+            },
             gauge = {
-                'axis': {'range': [0, gauge_max]},
-                'bar': {'color': "#38bdf8"},
+                'axis': {'range': [0, gauge_max], 'tickwidth': 1, 'tickcolor': '#64748b'},
+                'bar': {'color': "#38bdf8", 'thickness': 0.28},
+                'bgcolor': "rgba(15, 23, 42, 0.4)",
+                'borderwidth': 1,
+                'bordercolor': "rgba(255, 255, 255, 0.1)",
                 'steps': [
                     {'range': [0, max_capacity * 0.85], 'color': "rgba(16, 185, 129, 0.25)"},
                     {'range': [max_capacity * 0.85, max_capacity], 'color': "rgba(245, 158, 11, 0.25)"},
@@ -505,12 +523,18 @@ with tab3:
                 ],
                 'threshold': {
                     'line': {'color': "#ef4444", 'width': 4},
-                    'thickness': 0.75,
+                    'thickness': 0.8,
                     'value': max_capacity
                 }
             }
         ))
-        fig_gauge.update_layout(template="plotly_dark", height=260, margin=dict(l=20, r=20, t=40, b=20))
+        fig_gauge.update_layout(
+            template="plotly_dark",
+            height=280,
+            margin=dict(l=30, r=30, t=55, b=20),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)"
+        )
         st.plotly_chart(fig_gauge, use_container_width=True)
 
 # ==========================================

@@ -372,18 +372,27 @@ with tab3:
             is_weekend = st.checkbox("Is Weekend?", value=False)
             is_holiday = st.checkbox("Is Public Holiday?", value=False)
             
+        st.markdown("**Demographics & Local Grid (Indian Context)**")
+        dc1, dc2 = st.columns(2)
+        with dc1:
+            population = st.slider("Zone Population", 1000, 100000, 25000, step=1000)
+            transformer_cap = st.slider("Transformer Capacity (kWh)", 1000.0, 8000.0, 2500.0, step=100.0)
+        with dc2:
+            zone_type = st.radio("Zone Type", ["Residential", "Commercial / MNC Hub"])
+            is_mnc = 1 if zone_type == "Commercial / MNC Hub" else 0
+            
         st.markdown("**Time Series Lag Memory (kWh)**")
         lc1, lc2 = st.columns(2)
         with lc1:
-            lag_1 = st.number_input("Load at t-1 (Previous Hour)", value=32500.0, step=500.0)
-            lag_2 = st.number_input("Load at t-2 (2 Hours Ago)", value=31000.0, step=500.0)
+            lag_1 = st.number_input("Load at t-1 (Previous Hour)", value=1200.0, step=100.0)
+            lag_2 = st.number_input("Load at t-2 (2 Hours Ago)", value=1150.0, step=100.0)
         with lc2:
-            lag_24 = st.number_input("Load at t-24 (Yesterday Same Hour)", value=33000.0, step=500.0)
-            lag_168 = st.number_input("Load at t-168 (Last Week Same Hour)", value=31500.0, step=500.0)
+            lag_24 = st.number_input("Load at t-24 (Yesterday Same Hour)", value=1250.0, step=100.0)
+            lag_168 = st.number_input("Load at t-168 (Last Week Same Hour)", value=1200.0, step=100.0)
             
         roll_mean_6 = (lag_1 + lag_2) / 2.0
         roll_mean_24 = lag_24 * 0.95
-        roll_std_24 = 1800.0
+        roll_std_24 = 150.0
 
     with col_out:
         st.subheader("🔮 Forecast Inference Output")
@@ -395,6 +404,9 @@ with tab3:
         dayofyear = dt.dayofyear
 
         feat_dict = {
+            'population': population,
+            'is_mnc_zone': is_mnc,
+            'transformer_capacity': transformer_cap,
             'temperature_c': temp_c,
             'humidity_pct': humidity,
             'solar_irradiance_wm2': solar,
@@ -411,7 +423,8 @@ with tab3:
             'cos_month': np.cos(2 * np.pi * month / 12.0),
             'temp_squared': temp_c ** 2,
             'temp_humidity_idx': temp_c * (humidity / 100.0),
-            'is_extreme_temp': int((temp_c > 32) or (temp_c < 6)),
+            'is_extreme_temp': int((temp_c > 35) or (temp_c < 10)),
+            'pop_temp_idx': population * temp_c / 10000.0,
             'load_lag_1': lag_1,
             'load_lag_2': lag_2,
             'load_lag_24': lag_24,
@@ -420,6 +433,7 @@ with tab3:
             'rolling_mean_24': roll_mean_24,
             'rolling_std_24': roll_std_24
         }
+
         
         input_df = pd.DataFrame([feat_dict])[feature_cols]
         selected_model = models_dict[model_choice]
@@ -430,8 +444,7 @@ with tab3:
         else:
             pred_kwh = float(selected_model.predict(input_df)[0])
             
-        max_capacity = meta['grid_capacity_max_kwh']
-        peak_threshold = meta['peak_demand_threshold_kwh']
+        max_capacity = transformer_cap
         load_pct = (pred_kwh / max_capacity) * 100.0
         
         st.markdown(f"""
@@ -440,25 +453,27 @@ with tab3:
             <div style="font-size: 2.8rem; font-weight: 800; color: #38bdf8; margin: 8px 0;">
                 {pred_kwh:,.1f} <span style="font-size: 1.4rem;">kWh</span>
             </div>
-            <div style="color: #cbd5e1; font-size: 0.95rem;">Grid Load Utilization: <b>{load_pct:.1f}%</b></div>
+            <div style="color: #cbd5e1; font-size: 0.95rem;">Transformer Load Utilization: <b>{load_pct:.1f}%</b></div>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("<br>", unsafe_allow_html=True)
-        st.subheader("🚨 Grid Strain & Peak Status")
+        st.subheader("🚨 Transformer Strain & Load Balancing")
         
-        if pred_kwh >= peak_threshold:
+        if pred_kwh >= max_capacity:
+            shortage = pred_kwh - max_capacity
             st.markdown(f"""
             <div class="status-critical">
-                ⚠️ CRITICAL GRID PEAK STRAIN ALERT ({pred_kwh:,.0f} kWh)<br>
-                Demand exceeds peak threshold ({peak_threshold:,.0f} kWh). Risk of blackout! Activate demand response & peaking units immediately.
+                💥 CRITICAL: TRANSFORMER BLAST RISK ({pred_kwh:,.0f} kWh)<br>
+                Demand exceeds physical capacity of {max_capacity:,.0f} kWh! Risk of short circuit or explosion.<br>
+                <b>ACTION REQUIRED: Initiate targeted Load Shedding of at least {shortage:,.0f} kWh to balance supply equitably.</b>
             </div>
             """, unsafe_allow_html=True)
-        elif pred_kwh >= peak_threshold * 0.85:
+        elif pred_kwh >= max_capacity * 0.90:
             st.markdown(f"""
             <div class="status-warning">
-                ⚡ ELEVATED DEMAND WARNING ({pred_kwh:,.0f} kWh)<br>
-                Grid load approaching capacity. Monitor regional HVAC consumption.
+                ⚡ OVERLOAD WARNING ({pred_kwh:,.0f} kWh)<br>
+                Transformer operating at over 90% capacity. High risk of localized voltage drops and heating. Monitor {zone_type} usage.
             </div>
             """, unsafe_allow_html=True)
         else:

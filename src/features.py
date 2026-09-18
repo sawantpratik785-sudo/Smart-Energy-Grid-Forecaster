@@ -49,6 +49,8 @@ def create_time_series_features(df, target_col='load_kwh', is_inference=False):
     if not is_inference:
         df = df.dropna().reset_index(drop=True)
 
+    df = df.sort_values(['timestamp', 'zone_id']).reset_index(drop=True)
+
     return df
 
 FEATURE_COLUMNS = [

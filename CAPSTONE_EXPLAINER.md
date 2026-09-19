@@ -85,7 +85,7 @@ We compare 3 model architectures:
 ## 5. College Viva / Panel Interview Q&A Cheatsheet
 
 ### Q1: "Why did you use regression instead of time-series ARIMA/LSTM?"
-> **Answer**: "While LSTM neural networks work well, they require heavy computational power, high memory, and long training times. By engineering explicit time-series lag features ($t-1, t-24$, rolling averages) and demographic indices, Gradient Boosting achieves an $R^2$ of **0.8042** and MAPE of **6.22%** with sub-millisecond prediction latency, making it ideal for real-time edge deployment on substation SCADA systems."
+> **Answer**: "While LSTM neural networks work well, they require heavy computational power, high memory, and long training times. By engineering explicit time-series lag features ($t-1, t-24$, rolling averages) and demographic indices, Gradient Boosting achieves an $R^2$ of **0.8740** and MAPE of **6.48%** with sub-3ms prediction latency (~1.8 ms), making it ideal for real-time edge deployment on substation SCADA systems."
 
 ### Q2: "How did you prevent data leakage in your lag features?"
 > **Answer**: "All lag and rolling statistics are calculated strictly on past values (`shift(1)`, `shift(24)`) grouped by `zone_id`. Furthermore, the chronological 80/20 split ensures the model never peeks into future timestamps, and feature scaling (`StandardScaler`) was fitted ONLY on the chronological 80% training set."

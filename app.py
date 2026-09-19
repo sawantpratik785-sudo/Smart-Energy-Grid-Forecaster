@@ -264,7 +264,7 @@ with tab1:
         This leads to catastrophic transformer blasts, short circuits, and unscheduled blackouts. Traditional approaches rely on reactive load shedding *after* damage has occurred.
         
         **The AIML Solution**:
-        This project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling stats, cyclic time encodings) combined with **Demographic & Zoning Indicators** (Population Density, MNC Commercial Hubs, Population-Temperature Index) allows supervised regression models to predict transformer strain in advance with sub-millisecond inference latency, enabling proactive, targeted load shedding to prevent transformer fires.
+        This project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling stats, cyclic time encodings) combined with **Demographic & Zoning Indicators** (Population Density, MNC Commercial Hubs, Population-Temperature Index) allows supervised regression models to predict transformer strain in advance with **single-digit millisecond inference latency** (~2.7 ms for HistGradientBoosting and XGBoost, 0.08 ms for Ridge), comfortably satisfying real-time SCADA cycle constraints (< 15 ms) while enabling proactive, targeted load shedding to prevent transformer fires.
         
         ### 🎓 Academic Rigor & Evaluator Defenses
         - **Domain**: Smart Grid Logistics, Transformer Asset Protection & Predictive Maintenance  
@@ -274,9 +274,9 @@ with tab1:
         - **Uncertainty Quantification**: 90% Prediction Intervals ($Q_{05}$ to $Q_{95}$) with **87.4% empirical coverage**.  
         - **Dual-Task Safety Classification**: Overload Recall of **84.7%** and Precision of **97.2%** for catastrophic blast prevention.  
         - **Real Feature Importance**: Genuine Permutation Importance & SHAP TreeExplainer attributions (zero hardcoded values).  
-        - **Inference Latency**: Benchmarked at **~2.7 ms per single prediction** (>300 inferences/sec on CPU).  
+        - **Inference Latency**: Benchmarked at **~2.7 ms per single prediction** on CPU (314 inf/sec; 0.08 ms for Ridge).  
         - **Tariff Justification**: $0.08/kWh rate grounded in Central Electricity Regulatory Commission (CERC) Deviation Settlement Mechanism (DSM) regulations.  
-        - **Empirical Utility Benchmark**: Generalization verified on real reference grid loads (PJM pattern: **76.4% error reduction**).  
+        - **Empirical Utility Benchmark**: Generalization verified on authentic PJM Interconnection grid loads & ERA5 weather (**76.9% error reduction** over naïve rules).  
         
         ### 👥 Team Members
         - **Pratik Sawant** (20240802324)
@@ -296,7 +296,7 @@ with tab1:
                 <li><b>Life-Critical Safety Metric (Recall = 84.7%)</b>: Evaluates overload detection as a binary classification task where False Negatives mean transformer fires.</li>
                 <li><b>Local SHAP Waterfall Explanations</b>: Shows exact push/pull features for any specific hour's demand forecast.</li>
                 <li><b>Real Permutation Importance</b>: Calculated using scikit-learn's permutation_importance across 1,000 test observations.</li>
-                <li><b>Empirical Utility Benchmark</b>: Validated on real empirical utility data (PJM pattern) to counter synthetic data critiques.</li>
+                <li><b>Empirical Utility Benchmark</b>: Validated on authentic PJM Interconnection grid load and ERA5 historical weather (8,782 hours) to prove generalizability beyond synthetic data.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -593,8 +593,8 @@ with tab2:
     st.subheader("🌐 Empirical Utility Benchmark Validation")
     st.markdown("""
     **Addressing the 'Purely Synthetic Data' Critique**:
-    To prove that our feature engineering and tree-based architecture are not merely memorizing synthetic formulas, 
-    the pipeline was validated against an **Empirical Substation Utility Benchmark** mirroring real PJM Interconnection & Open Power System Data profiles.
+    To prove that our feature engineering and tree-based architecture are not merely memorizing synthetic generation formulas, 
+    the pipeline was validated against an **Authentic Empirical Utility Benchmark** constructed from official **PJM Interconnection** regional grid loads merged with **ECMWF ERA5 Reanalysis** historical weather data (Open-Meteo archive for 39.95°N, -75.16°W).
     """)
     
     if bench_results:
@@ -602,12 +602,13 @@ with tab2:
         with bc1:
             st.markdown(f"""
             <div class="badge-card">
-                <h4 style="color: #38bdf8; margin-top: 0;">🏛️ Reference Dataset Details</h4>
+                <h4 style="color: #38bdf8; margin-top: 0;">🏛️ Authentic Reference Dataset Provenance</h4>
                 <ul>
-                    <li><b>Dataset</b>: {bench_results.get('dataset_name')}</li>
-                    <li><b>Total Observations</b>: {bench_results.get('total_hours', 8784):,} Hourly Records</li>
-                    <li><b>Evaluation Split</b>: {bench_results.get('test_hours', 1757):,} Holdout Test Hours</li>
-                    <li><b>Stochastic Elements</b>: Autoregressive weather noise, non-linear HVAC cooling ($T>24°C^{{1.45}}$), and dual-peaked diurnal curves.</li>
+                    <li><b>Load Source</b>: PJM Interconnection Hourly Grid Load (<code>PJM_Load_hourly.csv</code> from Kaggle / PJM RTO).</li>
+                    <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Historical Weather Archive (Open-Meteo API).</li>
+                    <li><b>Total Observations</b>: {bench_results.get('total_hours', 8782):,} Continuous Hourly Records (Year 2000).</li>
+                    <li><b>Evaluation Split</b>: {bench_results.get('test_hours', 1723):,} Chronological Holdout Test Hours.</li>
+                    <li><b>Physical Verification</b>: True meteorological fluctuations, real diurnal factory/residential cycles, and authentic holidays. Zero synthetic formulas.</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)

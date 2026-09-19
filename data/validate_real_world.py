@@ -25,8 +25,8 @@ def validate_on_empirical_data():
     benchmark_path = os.path.join(PROJECT_ROOT, 'data', 'empirical_grid_benchmark.csv')
     if not os.path.exists(benchmark_path):
         print(f"[ERROR] Benchmark dataset not found at {benchmark_path}. Running generator...")
-        from data.generate_pjm_benchmark import generate_empirical_benchmark
-        generate_empirical_benchmark(benchmark_path)
+        from data.download_real_pjm_benchmark import build_real_pjm_benchmark
+        build_real_pjm_benchmark(benchmark_path)
 
     print(f"[INFO] Loading Empirical Benchmark Dataset: {benchmark_path}")
     df_raw = pd.read_csv(benchmark_path)

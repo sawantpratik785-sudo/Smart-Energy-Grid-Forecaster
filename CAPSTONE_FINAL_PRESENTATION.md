@@ -225,23 +225,24 @@ We trained two dedicated quantile gradient boosting models with Pinball Loss:
 
 ---
 
-## 11. 🌐 Empirical Utility Benchmark Validation (PJM / Open Power Load)
+## 11. 🌐 Empirical Utility Benchmark Validation (Authentic PJM & ERA5 Weather)
 
-To directly address the critique that *"models trained on synthetic formulas only learn hardcoded math"*, the architecture was benchmarked on an **Empirical Utility Dataset** mirroring real-world **PJM Interconnection / Open Power System Data** substation loads (8,784 hours with autoregressive stochastic weather fronts, commercial/residential diurnal curves, and non-linear HVAC cooling):
+To directly address the critique that *"models trained on synthetic formulas only learn hardcoded math"*, the architecture was benchmarked on an **Authentic Empirical Utility Dataset** constructed from official **PJM Interconnection** regional grid loads (`PJM_Load_hourly.csv` from Kaggle / PJM RTO) merged with **ECMWF ERA5 Reanalysis** historical weather data (Open-Meteo archive for 39.95°N, -75.16°W; 8,782 hours for Year 2000):
 
 ```
-EMPIRICAL UTILITY BENCHMARK EVALUATION (PJM SUBSTATION LOAD PROFILE)
+EMPIRICAL UTILITY BENCHMARK EVALUATION (PJM SUBSTATION FEEDER LOAD & ERA5 WEATHER)
 Model Architecture           | Test RMSE    | Test MAE     | Test R²    | Test MAPE 
 --------------------------------------------------------------------------------
-Naïve Baseline (t-24)        |   634.62 kWh |   481.29 kWh |  -0.0880   |     7.05%
-Ridge Regression             |   265.51 kWh |   207.50 kWh |   0.8096   |     2.93%
-Random Forest                |   172.62 kWh |   135.06 kWh |   0.9195   |     1.94%
-HistGradientBoosting         |   150.53 kWh |   117.63 kWh |   0.9388   |     1.69%
-XGBoost                      |   155.81 kWh |   121.23 kWh |   0.9344   |     1.74%
+Naïve Baseline (t-24)        |   484.10 kWh |   338.05 kWh |   0.7277   |     5.65%
+Ridge Regression             |   216.31 kWh |   158.56 kWh |   0.9456   |     2.56%
+Random Forest                |   124.34 kWh |    85.07 kWh |   0.9820   |     1.35%
+HistGradientBoosting (🏆)    |   111.71 kWh |    74.78 kWh |   0.9855   |     1.19%
+XGBoost                      |   117.50 kWh |    77.10 kWh |   0.9840   |     1.23%
 ```
 
-- **Benchmark Test RMSE**: **150.53 kWh** vs. Naïve Baseline **634.62 kWh** (**76.41% error reduction**).
-- **Empirical Test R²**: **0.9388**.
+- **Benchmark Test RMSE**: **111.71 kWh** vs. Naïve Baseline **484.10 kWh** (**76.92% error reduction**).
+- **Empirical Test R²**: **0.9855** (MAPE: 1.19%).
+- **Data Authenticity**: 100% real measured grid load and meteorological observations. Zero polynomial or synthetic random generation formulas.
 - **Execution Script**: `python data/validate_real_world.py`.
 
 ---
@@ -298,7 +299,7 @@ We implemented an automated test suite in `tests/test_pipeline.py` with **6 comp
 > **Answer**: *"RMSE treats an error of +50 kWh at 50% capacity identically to an error of +50 kWh at 95% capacity. In high-voltage grids, missing an overload (False Negative) causes transformer explosion and fire. Formulating overload detection as a classification task demonstrates our model achieves 84.7% Recall and 97.2% Precision, prioritizing human safety and infrastructure protection."*
 
 ### Q4: How do you address the criticism of synthetic data?
-> **Answer**: *"First, our multi-zone simulator incorporates real physical laws: IEEE C57 thermal degradation, non-linear cooling demand, and diurnal work curves. Second, to prove real-world generalizability, we benchmarked the pipeline on an empirical utility dataset mirroring PJM Interconnection grid loads, where our model achieved a 76.41% error reduction over naïve rules with an R² of 0.9388."*
+> **Answer**: *"First, our multi-zone simulator incorporates real physical laws: IEEE C57 thermal degradation, non-linear cooling demand, and diurnal work curves. Second, to decisively prove real-world generalizability, we benchmarked the pipeline on an authentic empirical benchmark joining official PJM Interconnection grid loads (`PJM_Load_hourly.csv` from Kaggle/PJM RTO) with ECMWF ERA5 reanalysis weather. Our model achieved an R² of 0.9855 and a 76.92% error reduction over naïve rules with zero synthetic formula dependence."*
 
 ### Q5: How was feature importance computed for Gradient Boosting?
 > **Answer**: *"HistGradientBoosting does not expose split counts like random forests, so we computed Permutation Feature Importance using scikit-learn's `permutation_importance` over test samples (measuring the drop in prediction score upon shuffling each feature). Additionally, we trained XGBoost which natively exposes Gain importance, and computed SHAP TreeExplainer values, confirming that weekly lag-168, lag-1, and the Population-Temperature index dominate grid demand."*

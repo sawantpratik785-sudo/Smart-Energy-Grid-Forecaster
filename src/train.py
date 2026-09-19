@@ -465,7 +465,10 @@ def run_training_pipeline():
 
     # 8. Empirical Utility Benchmark Generalization
     print("\n[INFO] Evaluating Generalization on Empirical Substation Utility Benchmark (PJM load)...")
-    benchmark_results = {}
+    if not os.path.exists(benchmark_path):
+        from data.download_real_pjm_benchmark import build_real_pjm_benchmark
+        build_real_pjm_benchmark(benchmark_path)
+
     if os.path.exists(benchmark_path):
         df_bench_raw = pd.read_csv(benchmark_path)
         df_bench = create_time_series_features(df_bench_raw, target_col='load_kwh')
@@ -488,7 +491,7 @@ def run_training_pipeline():
         bench_class_metrics = calculate_classification_metrics(y_b_test, pred_b_test, cap_b_test, threshold_ratio=0.90)
 
         benchmark_results = {
-            'dataset_name': 'Empirical Substation Utility Benchmark (PJM / Open Power Load)',
+            'dataset_name': 'Empirical Substation Utility Benchmark (Real PJM Interconnection Load & ERA5 Weather)',
             'total_hours': len(df_bench),
             'test_hours': len(X_b_test),
             'gradient_boosting_metrics': bench_gb_metrics,

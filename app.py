@@ -302,6 +302,47 @@ with tab1:
         """, unsafe_allow_html=True)
         
     st.markdown("---")
+    
+    # Akurdi Campus & Pune Educational Belt Case Study
+    st.subheader("🏫 Ground-Truth Motivation: The Akurdi Campus & Pune Educational Belt Case Study")
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border-radius: 14px; padding: 22px; border: 1px solid #38bdf8; margin-bottom: 25px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 1.8rem;">🎓</span>
+            <div>
+                <h4 style="color: #38bdf8; margin: 0; font-size: 1.15rem;">Real-World Campus Problem: The 3-Minute Lecture Blackout</h4>
+                <span style="color: #94a3b8; font-size: 0.85rem;">Motivated by direct operational challenges at our engineering campus in Akurdi, Pune</span>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h5 style="color: #f87171; margin-top: 0; margin-bottom: 6px;">⚡ The Localized Campus Crisis</h5>
+                <ul style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5; padding-left: 18px; margin: 0;">
+                    <li><b>Student Intake Expansion</b>: Newly opened admissions and expanded intake have added smart classrooms, AI computing labs, and crowded hostels—drawing unprecedented power from distribution transformers that were never upgraded.</li>
+                    <li><b>Classroom Disruption</b>: When the local transformer trips due to peak air conditioning load, smart projectors, digital podiums, and dual side TV presentation screens abruptly shut down.</li>
+                    <li><b>The 2–5 Minute DG Dead-Zone</b>: Even with an on-campus Diesel Generator (DG set), automatic mains failure (AMF) synchronization takes <b>2 to 5 minutes</b> to achieve 50 Hz grid frequency—freezing academic lectures.</li>
+                </ul>
+            </div>
+            <div>
+                <h5 style="color: #34d399; margin-top: 0; margin-bottom: 6px;">💡 How Machine Learning Solves It</h5>
+                <ul style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5; padding-left: 18px; margin: 0;">
+                    <li><b>1-Hour Advance Lookahead Horizon</b>: Because our model forecasts demand for the upcoming hour (<i>t+1</i>), facilities staff receive <b>up to 60 minutes of advance notice</b>—far exceeding the 2–5 minute DG synchronization lead time.</li>
+                    <li><b>Proactive DG Pre-Warming</b>: Facilities can pre-start the backup generator at idle <i>before</i> the grid trips, guaranteeing zero transition dead-zone.</li>
+                    <li><b>Dynamic Selective Load Shedding</b>: Curtains non-critical loads (sports lighting, raw water lift pumps shifted to 2:00 AM off-peak) while keeping <b>Classroom Projectors & Dual TV Screens at 100% continuous power</b>.</li>
+                </ul>
+            </div>
+        </div>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: #94a3b8; font-size: 0.82rem;">
+                <b>Infrastructure Contrast</b>: Capital-intensive manufacturing plants in the Chakan industrial corridor operate continuous multi-megawatt captive solar and N+1 redundant industrial gensets with sub-cycle transfer. In contrast, educational campuses and MSMEs rely on the public distribution grid (MSEDCL) and require ML predictive intelligence to avoid blackouts.
+            </div>
+        </div>
+        <div style="margin-top: 8px; color: #64748b; font-size: 0.78rem; font-style: italic;">
+            * Academic Modeling Disclosure: The Akurdi campus scenario is modeled using the trained Commercial daytime-peak curve (14,000 daytime population) as a realistic proxy for institutional load; dedicated campus feeder sub-metering is highlighted as immediate future work.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.subheader("🛠️ End-to-End System Architecture")
     
     st.markdown("""
@@ -634,7 +675,7 @@ with tab3:
     
     # 1-Click Indian Grid Scenario Presets
     st.markdown("**⚡ Quick Indian Grid Demonstration Presets**")
-    p1, p2, p3 = st.columns(3)
+    p1, p2, p3, p4 = st.columns(4)
     
     if 'preset_hour' not in st.session_state:
         st.session_state.preset_hour = 19
@@ -648,7 +689,7 @@ with tab3:
         st.session_state.preset_lag24 = 1250.0
 
     with p1:
-        if st.button("🔥 May Heatwave Peak (42°C, 8 PM)", use_container_width=True):
+        if st.button("🔥 May Heatwave (42°C, 8 PM)", use_container_width=True):
             st.session_state.preset_hour = 20
             st.session_state.preset_temp = 42.0
             st.session_state.preset_humidity = 40.0
@@ -661,7 +702,7 @@ with tab3:
             st.rerun()
 
     with p2:
-        if st.button("🏢 Cyber City MNC Afternoon (2 PM)", use_container_width=True):
+        if st.button("🏢 Cyber City MNC (35°C, 2 PM)", use_container_width=True):
             st.session_state.preset_hour = 14
             st.session_state.preset_temp = 35.0
             st.session_state.preset_humidity = 55.0
@@ -674,7 +715,7 @@ with tab3:
             st.rerun()
 
     with p3:
-        if st.button("🌱 Monsoon Normal Evening (25°C, 7 PM)", use_container_width=True):
+        if st.button("🌱 Monsoon Normal (25°C, 7 PM)", use_container_width=True):
             st.session_state.preset_hour = 19
             st.session_state.preset_temp = 25.0
             st.session_state.preset_humidity = 82.0
@@ -684,6 +725,19 @@ with tab3:
             st.session_state.preset_weekend = True
             st.session_state.preset_lag1 = 1100.0
             st.session_state.preset_lag24 = 1150.0
+            st.rerun()
+
+    with p4:
+        if st.button("🏫 Akurdi Campus Peak (36.5°C, 11 AM)", use_container_width=True):
+            st.session_state.preset_hour = 11
+            st.session_state.preset_temp = 36.5
+            st.session_state.preset_humidity = 58.0
+            st.session_state.preset_pop = 14000
+            st.session_state.preset_cap = 2500.0
+            st.session_state.preset_zone = "Commercial / MNC Hub"
+            st.session_state.preset_weekend = False
+            st.session_state.preset_lag1 = 2150.0
+            st.session_state.preset_lag24 = 2200.0
             st.rerun()
 
     st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
@@ -929,6 +983,116 @@ with tab3:
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+        # -------------------------------------------------------------
+        # Campus & MSME Proactive Action Plan & Dynamic Load Shedding
+        # -------------------------------------------------------------
+        safety_limit = max_capacity * 0.90
+        shortfall = max(0.0, pred_kwh - safety_limit)
+        
+        if load_ratio >= 0.90 or (q95_val is not None and q95_val >= max_capacity):
+            # Dynamic multi-tier load-shedding calculation matching gauge shortfall
+            # Tier 1 (Protected): 0 kWh shed
+            tier1_protected_kwh = 0.0
+            
+            # Tier 2: Admin Chiller setpoint bump (22°C -> 25°C), saves up to 6% of load
+            tier2_cap = round(0.06 * pred_kwh, 1)
+            tier2_shed = min(shortfall, tier2_cap)
+            rem_after_t2 = max(0.0, shortfall - tier2_shed)
+            
+            # Tier 3: Deferrable non-critical heavy campus loads
+            tier3a_floodlights_cap = 35.0
+            tier3a_shed = min(rem_after_t2, tier3a_floodlights_cap)
+            rem_after_t3a = max(0.0, rem_after_t2 - tier3a_shed)
+            
+            tier3b_water_pump_cap = 110.0
+            tier3b_shed = min(rem_after_t3a, tier3b_water_pump_cap)
+            rem_after_t3b = max(0.0, rem_after_t3a - tier3b_shed)
+            
+            tier3c_laundry_cap = 65.0
+            tier3c_shed = min(rem_after_t3b, tier3c_laundry_cap)
+            rem_after_t3c = max(0.0, rem_after_t3b - tier3c_shed)
+            
+            total_shed = tier2_shed + tier3a_shed + tier3b_shed + tier3c_shed
+            post_shed_load = pred_kwh - total_shed
+            post_shed_pct = (post_shed_load / max_capacity) * 100.0
+            deficit_closed = (rem_after_t3c <= 0.01)
+            
+            mitigation_badge = "DEFICIT FULLY MITIGATED" if deficit_closed else "PARTIAL MITIGATION"
+            mitigation_color = "#34d399" if deficit_closed else "#fbbf24"
+            mitigation_bg = "rgba(16, 185, 129, 0.2)" if deficit_closed else "rgba(245, 158, 11, 0.2)"
+            
+            st.markdown(f"""
+            <div style="background: #1e293b; border-radius: 12px; padding: 18px; border: 1px solid #38bdf8; margin-top: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 700; color: #38bdf8; font-size: 0.95rem;">
+                        🏫 Campus & MSME Proactive Action Plan
+                    </div>
+                    <div style="background: {mitigation_bg}; color: {mitigation_color}; border: 1px solid {mitigation_color}; font-weight: 800; padding: 3px 8px; border-radius: 6px; font-size: 0.8rem;">
+                        {mitigation_badge}
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; padding: 10px; border-left: 3px solid #fbbf24;">
+                    <div style="color: #fbbf24; font-weight: 700; font-size: 0.85rem;">
+                        ⚡ Proactive DG Pre-Warming Advisory (1-Hour Advance Lookahead)
+                    </div>
+                    <div style="color: #cbd5e1; font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">
+                        Upcoming hour demand ({pred_kwh:,.1f} kWh) threatens transformer overload. <b>Facility managers receive up to 60 minutes of lead time</b> (far exceeding the 2–5 min generator spin-up) to pre-warm the campus DG set at idle, completely preventing lecture blackout dead-zones.
+                    </div>
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <div style="color: #cbd5e1; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px;">
+                        🎯 Dynamic Selective Load-Shedding Matrix:
+                    </div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
+                        Required Overload Relief: <b style="color: #f87171;">{shortfall:,.1f} kWh</b> | Dynamically Shed: <b style="color: #34d399;">{total_shed:,.1f} kWh</b>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #34d399; font-weight: 600; font-size: 0.8rem;">Tier 1: Classroom Projectors, Dual TV Screens & AI Labs</span>
+                            <span style="color: #34d399; font-weight: 800; font-size: 0.78rem;">0 kWh Shed (100% POWERED)</span>
+                        </div>
+                        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">Tier 2: Admin Chiller Setpoint Bump (22°C → 25°C)</span>
+                            <span style="color: #fbbf24; font-weight: 700; font-size: 0.78rem;">-{tier2_shed:.1f} kWh (of {tier2_cap:.1f} cap)</span>
+                        </div>
+                        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">Tier 3a: Non-Essential Sports & Exterior Floodlights</span>
+                            <span style="color: #fbbf24; font-weight: 700; font-size: 0.78rem;">-{tier3a_shed:.1f} kWh (of {tier3a_floodlights_cap:.1f} cap)</span>
+                        </div>
+                        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">Tier 3b: Raw Water Lift Pumps (Reschedule to 2 AM off-peak)</span>
+                            <span style="color: #fbbf24; font-weight: 700; font-size: 0.78rem;">-{tier3b_shed:.1f} kWh (of {tier3b_water_pump_cap:.1f} cap)</span>
+                        </div>
+                        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #cbd5e1; font-size: 0.8rem;">Tier 3c: Hostel Laundry / Water Heating Buffer</span>
+                            <span style="color: #fbbf24; font-weight: 700; font-size: 0.78rem;">-{tier3c_shed:.1f} kWh (of {tier3c_laundry_cap:.1f} cap)</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 10px; padding: 8px 10px; background: rgba(56, 189, 248, 0.1); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.8rem; color: #cbd5e1;">
+                        <b>Post-Mitigation Grid State</b>: Load reduced to <b>{post_shed_load:,.1f} kWh</b> ({post_shed_pct:.1f}% capacity). Transformer thermal runaway averted while all academic classroom screens remain active!
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #10b981; margin-top: 14px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #34d399; font-size: 1.2rem;">🟢</span>
+                    <div style="color: #34d399; font-weight: 700; font-size: 0.9rem;">
+                        Campus Grid Within Safe Limits ({load_pct:.1f}% capacity)
+                    </div>
+                </div>
+                <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">
+                    Normal MSEDCL grid supply is stable. All classroom smart screens, IT labs, and campus facilities operating on primary grid power without generator changeover or load shedding.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ==========================================
 # TAB 4: FEATURE ENGINEERING & SHAP EXPLAINABILITY

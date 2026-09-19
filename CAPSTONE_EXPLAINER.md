@@ -98,3 +98,9 @@ We compare 3 model architectures:
 
 ### Q5: "How does the Streamlit app help grid operators?"
 > **Answer**: "The dashboard provides real-time forecasting, interactive demographic sliders, model benchmarking, feature importance analyses, and an automated Transformer Blast Risk alert that recommends targeted load shedding amounts."
+
+### Q6: "How does this solve the actual power cut issue on our Akurdi campus?"
+> **Answer**: "New academic admissions and increased intake added smart classrooms, dual TV presentation screens, digital podiums, and AI computing labs. These surge power demand on local MSEDCL distribution transformers. When the transformer trips, campus emergency diesel generators (DG sets) take 2 to 5 minutes to start and synchronize at 50 Hz, causing a complete lecture blackout. Because our model predicts load for the upcoming hour ($t+1$), facilities staff receive up to 60 minutes of advance operational lookahead to pre-warm the DG set at idle and dynamically shed non-critical loads (sports lights, water pump shifts to 2:00 AM off-peak) while keeping all classroom screens and projectors 100% powered."
+
+### Q7: "Why do big manufacturing companies not suffer from this, but colleges and small businesses do?"
+> **Answer**: "Large industrial plants in the Chakan/Talegaon corridors have multi-megawatt captive solar and continuous 24/7 N+1 redundant industrial generators with sub-cycle transfer switches. Educational campuses, schools, coaching institutes, and local MSMEs rely on the public distribution grid (MSEDCL) and standard transformers. Our ML solution brings proactive predictive protection to public grid-dependent institutions without requiring multimillion-dollar captive infrastructure."

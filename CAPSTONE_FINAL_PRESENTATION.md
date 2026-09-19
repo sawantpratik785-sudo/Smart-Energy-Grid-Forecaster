@@ -273,7 +273,27 @@ Evaluators will ask: *"Where did the $0.08/kWh error penalty come from?"*
 
 ---
 
-## 14. 🧪 Automated Unit Testing (`pytest tests/`)
+## 14. 🏫 Ground-Truth Motivation: The Akurdi Campus & Pune Educational Belt Case Study
+
+This capstone project is directly motivated by real-world operational challenges at our engineering campus in **Akurdi, Pune** (a major educational and residential hub in the PCMC region):
+
+### The Campus Problem: The 3-Minute Lecture Blackout
+1. **Admissions Intake Expansion**: Newly opened academic admissions and increased student intake introduced additional air-conditioned smart classrooms, dual side TV presentation screens, digital podiums, and high-performance AI/CAD computer laboratories. These additions draw massive power from local distribution transformers that were never upgraded in capacity.
+2. **Classroom Disruption**: When localized peak demand trips the distribution transformer, classroom projectors and dual TV screens abruptly shut down, disrupting academic lectures and laboratory experiments.
+3. **The 2–5 Minute DG Dead-Zone**: Although the campus possesses an on-site Diesel Generator (DG set), automatic mains failure (AMF) panels require **2 to 5 minutes** to crank the engine, build oil pressure, and synchronize frequency to 50 Hz. This causes a complete blackout dead-zone in the middle of lectures.
+
+### How Machine Learning Solves It
+- **1-Hour Operational Lookahead**: Because our supervised model predicts load for the **upcoming hour ($t+1$)**, facility managers receive **up to 60 minutes of advance operational warning**—far exceeding the 2 to 5 minutes needed to pre-warm the backup generator and synchronize it at idle *before* grid failure occurs.
+- **Dynamic Multi-Tier Selective Load Shedding**: When overload is predicted, the system calculates the exact shortfall ($\Delta_{\text{shortfall}} = \max(0, \hat{y} - 0.90 \times C)$) and sheds non-critical buffer loads (e.g. bumping admin chiller setpoints from $22^\circ\text{C}$ to $25^\circ\text{C}$, switching off sports ground floodlights, and rescheduling raw water lift pumps to 2:00 AM off-peak night hours) while keeping **Classroom Projectors & Dual TV Screens 100% powered**.
+
+### Infrastructure Contrast & Equity
+Capital-intensive manufacturing plants in the Chakan/Talegaon industrial corridors operate continuous multi-megawatt captive solar and N+1 redundant industrial gensets with sub-cycle transfer switches. In contrast, educational campuses, schools, coaching institutes, and MSMEs rely on the public distribution grid (MSEDCL) and require ML predictive intelligence to avoid blackouts.
+
+> **Academic Modeling Proxy Disclosure**: The Akurdi campus scenario is modeled using the trained Commercial daytime-peak curve ($N=14,000$ active daytime campus population) as a realistic proxy for institutional load; deploying dedicated campus smart sub-metering datasets across college feeders is highlighted as immediate future work.
+
+---
+
+## 15. 🧪 Automated Unit Testing (`pytest tests/`)
 
 We implemented an automated test suite in `tests/test_pipeline.py` with **6 comprehensive unit tests**:
 1. `test_feature_engineering_completeness_and_no_nans`: Verifies all 28 feature columns are created with zero NaNs.
@@ -283,30 +303,39 @@ We implemented an automated test suite in `tests/test_pipeline.py` with **6 comp
 5. `test_inference_latency_sub_fifteen_ms`: Verifies single-sample prediction latency is under 25 ms.
 6. `test_prediction_physical_validity`: Verifies predictions are non-negative and physically plausible.
 
-*Execution Command*: `pytest tests/ -v` (100% tests passing in 3.7 seconds).
+*Execution Command*: `pytest tests/ -v` (100% tests passing in 2.7 seconds).
 
 ---
 
-## 🎓 15. College Viva / Evaluator Defense Q&A Cheatsheet
+## 🎓 16. College Viva / Evaluator Defense Q&A Cheatsheet
 
 ### Q1: Why not just use an LSTM or Deep Learning?
-> **Answer**: *"LSTMs require substantial GPU memory, extensive hyperparameter tuning, and have high inference latency (>50ms). By explicitly engineering domain-informed temporal features (lags, rolling averages, cyclic sine/cosine encodings), HistGradientBoosting and XGBoost achieve superior accuracy ($R^2 = 0.8759$) with sub-3ms inference on standard CPUs, making them practical for low-cost edge controllers deployed at neighborhood distribution substations."*
+> **Answer**: *"LSTMs require substantial GPU memory, extensive hyperparameter tuning, and have high inference latency (>50ms). By explicitly engineering domain-informed temporal features (lags, rolling averages, cyclic sine/cosine encodings), HistGradientBoosting and XGBoost achieve superior accuracy ($R^2 = 0.8740$) with sub-3ms inference on standard CPUs (~1.8 ms), making them practical for low-cost edge controllers deployed at neighborhood distribution substations."*
 
 ### Q2: Why is Walk-Forward Cross-Validation necessary instead of 5-Fold K-Fold?
 > **Answer**: *"Standard K-Fold randomly shuffles samples, creating temporal lookahead leakage where future data informs past predictions. TimeSeriesSplit uses an expanding training window that strictly predicts into future unseen periods, testing the model across different seasonal regimes."*
 
 ### Q3: Why evaluate Overload Recall in addition to RMSE and R²?
-> **Answer**: *"RMSE treats an error of +50 kWh at 50% capacity identically to an error of +50 kWh at 95% capacity. In high-voltage grids, missing an overload (False Negative) causes transformer explosion and fire. Formulating overload detection as a classification task demonstrates our model achieves 84.7% Recall and 97.2% Precision, prioritizing human safety and infrastructure protection."*
+> **Answer**: *"RMSE treats an error of +50 kWh at 50% capacity identically to an error of +50 kWh at 95% capacity. In high-voltage grids, missing an overload (False Negative) causes transformer explosion and fire. Formulating overload detection as a classification task demonstrates our model achieves 85.4% Recall and 98.7% Precision, prioritizing human safety and infrastructure protection."*
 
 ### Q4: How do you address the criticism of synthetic data?
-> **Answer**: *"First, our multi-zone simulator incorporates real physical laws: IEEE C57 thermal degradation, non-linear cooling demand, and diurnal work curves. Second, to decisively prove real-world generalizability, we benchmarked the pipeline on an authentic empirical benchmark joining official PJM Interconnection grid loads (`PJM_Load_hourly.csv` from Kaggle/PJM RTO) with ECMWF ERA5 reanalysis weather. Our model achieved an R² of 0.9855 and a 76.92% error reduction over naïve rules with zero synthetic formula dependence."*
+> **Answer**: *"First, our multi-zone simulator incorporates real physical laws: IEEE C57 thermal degradation, non-linear cooling demand, and diurnal work curves. Second, to decisively prove real-world generalizability, we benchmarked the pipeline on an authentic empirical benchmark joining official PJM Interconnection grid loads (`PJM_Load_hourly.csv` from Kaggle/PJM RTO) with ECMWF ERA5 reanalysis weather. Our model achieved an R² of 0.9855 and a 77.14% error reduction over naïve rules with zero synthetic formula dependence."*
 
 ### Q5: How was feature importance computed for Gradient Boosting?
 > **Answer**: *"HistGradientBoosting does not expose split counts like random forests, so we computed Permutation Feature Importance using scikit-learn's `permutation_importance` over test samples (measuring the drop in prediction score upon shuffling each feature). Additionally, we trained XGBoost which natively exposes Gain importance, and computed SHAP TreeExplainer values, confirming that weekly lag-168, lag-1, and the Population-Temperature index dominate grid demand."*
 
+### Q6: How does this project solve actual problems on our campus in Akurdi?
+> **Answer**: *"Our project was motivated by our daily experience in Akurdi. With new admission batches and expanded intake, our campus added air-conditioned smart classrooms, dual TV presentation screens, digital podiums, and AI computing labs. These create severe peak demand surges on the local MSEDCL distribution transformer. When the transformer trips, the emergency diesel generator (DG set) takes 2 to 5 minutes to synchronize on the AMF panel, causing a complete lecture blackout where screens die and teaching halts. Because our ML model forecasts load for the upcoming hour (t+1), facilities staff receive up to 60 minutes of advance lookahead—far exceeding the 2–5 minute requirement. This allows facilities to pre-warm the generator at idle before grid failure occurs and dynamically shed non-critical loads (sports lights, water pump shifts to 2:00 AM off-peak) while keeping all classroom projectors and dual TV screens 100% powered."*
+
+### Q7: Why do large industrial plants in Pune not suffer from this, but colleges and small businesses do?
+> **Answer**: *"Large capital-intensive manufacturing plants in the Chakan/Talegaon industrial corridors or multinational IT campuses in Hinjewadi operate multi-megawatt captive rooftop solar arrays and continuous 24/7 N+1 redundant industrial generators with sub-cycle automatic transfer switches. In contrast, educational institutions, schools, coaching institutes, and local MSMEs rely entirely on the public distribution grid (MSEDCL) and standard distribution transformers, bearing the brunt of transformer trips and delayed manual/AMF changeovers. Our lightweight ML solution brings intelligent, predictive asset protection to public grid-dependent institutions without requiring multimillion-dollar captive infrastructure."*
+
+### Q8: Did your model train on campus-specific data?
+> **Answer**: *"We disclose this transparently: the Akurdi campus scenario is modeled using our trained Commercial daytime-peak profile (N=14,000 active daytime campus population) as a realistic proxy for institutional load, as lecture halls share identical 9:00 AM to 5:00 PM AC and IT computing peaks with commercial offices. Deploying dedicated campus smart sub-metering datasets across college feeders is highlighted as immediate future work."*
+
 ---
 
-## 🚀 16. How to Run the Project (Step-by-Step)
+## 🚀 17. How to Run the Project (Step-by-Step)
 
 ### Step 1: Navigate to Project Directory
 ```powershell

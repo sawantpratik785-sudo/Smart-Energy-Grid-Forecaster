@@ -214,7 +214,7 @@
         },
         {
           "rmse": 563.9078051941607,
-          "mae": 372.29405699552603,
+          "mae": 372.2940569955261,
           "r2": 0.8104890370680247,
           "mape": 12.763278443285293
         },
@@ -231,7 +231,7 @@
           "mape": 9.644458342166276
         },
         {
-          "rmse": 243.9972775356035,
+          "rmse": 243.99727753560353,
           "mae": 125.16912034904053,
           "r2": 0.8589676736851016,
           "mape": 7.131596633582861
@@ -325,27 +325,27 @@
   },
   "inference_benchmarks": {
     "Ridge Regression": {
-      "median_latency_ms": 0.064,
-      "p99_latency_ms": 0.093,
-      "inferences_per_sec": 15128,
+      "median_latency_ms": 0.103,
+      "p99_latency_ms": 0.226,
+      "inferences_per_sec": 8789,
       "is_sub_millisecond": true
     },
     "Random Forest": {
-      "median_latency_ms": 16.307,
-      "p99_latency_ms": 30.536,
-      "inferences_per_sec": 59,
+      "median_latency_ms": 69.61,
+      "p99_latency_ms": 107.253,
+      "inferences_per_sec": 13,
       "is_sub_millisecond": false
     },
     "HistGradientBoosting": {
-      "median_latency_ms": 1.777,
-      "p99_latency_ms": 3.158,
-      "inferences_per_sec": 566,
+      "median_latency_ms": 7.097,
+      "p99_latency_ms": 11.472,
+      "inferences_per_sec": 131,
       "is_sub_millisecond": false
     },
     "XGBoost": {
-      "median_latency_ms": 1.802,
-      "p99_latency_ms": 2.207,
-      "inferences_per_sec": 546,
+      "median_latency_ms": 6.591,
+      "p99_latency_ms": 10.533,
+      "inferences_per_sec": 149,
       "is_sub_millisecond": false
     }
   },
@@ -6276,21 +6276,21 @@
     "classification_metrics": {
       "confusion_matrix": [
         [
-          1715,
-          0
+          1510,
+          20
         ],
         [
-          5,
-          3
+          19,
+          174
         ]
       ],
-      "precision": 100.0,
-      "recall": 37.5,
-      "specificity": 100.0,
-      "f1": 54.55,
-      "fnr": 62.5,
-      "total_overload_events": 8,
-      "predicted_overload_events": 3
+      "precision": 89.69,
+      "recall": 90.16,
+      "specificity": 98.69,
+      "f1": 89.92,
+      "fnr": 9.84,
+      "total_overload_events": 193,
+      "predicted_overload_events": 194
     },
     "rmse_reduction_pct": 77.14
   },

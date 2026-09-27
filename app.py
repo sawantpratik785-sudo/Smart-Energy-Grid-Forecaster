@@ -264,7 +264,7 @@ with tab1:
         This leads to catastrophic transformer blasts, short circuits, and unscheduled blackouts. Traditional approaches rely on reactive load shedding *after* damage has occurred.
         
         **The AIML Solution**:
-        This project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling stats, cyclic time encodings) combined with **Demographic & Zoning Indicators** (Population Density, MNC Commercial Hubs, Population-Temperature Index) allows supervised regression models to predict transformer strain in advance with **single-digit millisecond inference latency** (~2.7 ms for HistGradientBoosting and XGBoost, 0.08 ms for Ridge), comfortably satisfying real-time SCADA cycle constraints (< 15 ms) while enabling proactive, targeted load shedding to prevent transformer fires.
+        This project proves that **Time-Series Lag Feature Engineering** ($t-1, t-2, t-24, t-168$, 24h rolling stats, cyclic time encodings) combined with **Demographic & Zoning Indicators** (Population Density, MNC Commercial Hubs, Population-Temperature Index) allows supervised regression models to predict transformer strain in advance with **single-digit millisecond inference latency** (~7.1 ms for HistGradientBoosting, 6.6 ms for XGBoost, 0.10 ms for Ridge), comfortably satisfying real-time SCADA cycle constraints (< 15 ms) while enabling proactive, targeted load shedding to prevent transformer fires.
         
         ### 🎓 Academic Rigor & Evaluator Defenses
         - **Domain**: Smart Grid Logistics, Transformer Asset Protection & Predictive Maintenance  
@@ -272,11 +272,11 @@ with tab1:
         - **Hyperparameter Search**: Systematically tuned via 3-Fold TimeSeriesSplit GridSearchCV (Ridge, HistGB, XGBoost).  
         - **Ablation Study**: Empirically proved that adding socio-demographic features improves test accuracy and overload recall.  
         - **Uncertainty Quantification**: 90% Prediction Intervals ($Q_{05}$ to $Q_{95}$) with **87.4% empirical coverage**.  
-        - **Dual-Task Safety Classification**: Overload Recall of **84.7%** and Precision of **97.2%** for catastrophic blast prevention.  
+        - **Dual-Task Safety Classification**: Overload Recall of **85.4%**, Precision of **98.7%**, and F1-Score of **91.6%** for catastrophic blast prevention.  
         - **Real Feature Importance**: Genuine Permutation Importance & SHAP TreeExplainer attributions (zero hardcoded values).  
-        - **Inference Latency**: Benchmarked at **~2.7 ms per single prediction** on CPU (314 inf/sec; 0.08 ms for Ridge).  
+        - **Inference Latency**: Benchmarked at **~7.1 ms per single prediction** on CPU for HistGB (131 inf/sec; 0.10 ms for Ridge with 8,789 inf/sec).  
         - **Tariff Justification**: $0.08/kWh rate grounded in Central Electricity Regulatory Commission (CERC) Deviation Settlement Mechanism (DSM) regulations.  
-        - **Empirical Utility Benchmark**: Generalization verified on authentic PJM Interconnection grid loads & ERA5 weather (**76.9% error reduction** over naïve rules).  
+        - **Empirical Utility Benchmark**: Generalization verified on authentic PJM Interconnection grid loads & ERA5 weather (**77.14% error reduction** over naïve rules, R² = 0.9858, 90.2% overload recall).  
         
         ### 👥 Team Members
         - **Pratik Sawant** (20240802324)
@@ -293,10 +293,10 @@ with tab1:
                 <li><b>Tuned Hyperparameters</b>: Ridge (alpha=100.0), GB (lr=0.08, depth=8), XGB (lr=0.05, depth=6) justified via TimeSeriesSplit grid search.</li>
                 <li><b>Ablation Study</b>: Proves socio-demographic features yield direct performance gains over weather/lag-only models.</li>
                 <li><b>Quantile Uncertainty ($Q_{05} - Q_{95}$)</b>: Generates 90% prediction intervals so utilities can quantify spinning reserve risk.</li>
-                <li><b>Life-Critical Safety Metric (Recall = 84.7%)</b>: Evaluates overload detection as a binary classification task where False Negatives mean transformer fires.</li>
+                <li><b>Life-Critical Safety Metric (Recall = 85.4%, Precision = 98.7%)</b>: Evaluates overload detection as a binary classification task where False Negatives mean transformer fires.</li>
                 <li><b>Local SHAP Waterfall Explanations</b>: Shows exact push/pull features for any specific hour's demand forecast.</li>
-                <li><b>Real Permutation Importance</b>: Calculated using scikit-learn's permutation_importance across 1,000 test observations.</li>
-                <li><b>Empirical Utility Benchmark</b>: Validated on authentic PJM Interconnection grid load and ERA5 historical weather (8,782 hours) to prove generalizability beyond synthetic data.</li>
+                <li><b>Real Permutation Importance</b>: Calculated using scikit-learn's permutation_importance across test observations.</li>
+                <li><b>Empirical Utility Benchmark</b>: Validated on authentic PJM Interconnection grid load and ERA5 historical weather (8,782 hours, 1,723 test hours) achieving 77.14% error reduction and 90.2% overload recall.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -656,13 +656,16 @@ with tab2:
         with bc2:
             gbm = bench_results.get('gradient_boosting_metrics', {})
             nbm = bench_results.get('naive_baseline_metrics', {})
+            bcm = bench_results.get('classification_metrics', {})
             st.markdown(f"""
             <div class="badge-card">
                 <h4 style="color: #34d399; margin-top: 0;">📈 Benchmark Generalization Results</h4>
                 <p>Gradient Boosting Test RMSE: <b>{gbm.get('rmse', 0):.2f} kWh</b> (vs. Naïve Baseline {nbm.get('rmse', 0):.2f} kWh)</p>
-                <p>Empirical Test R² Score: <b>{gbm.get('r2', 0):.4f}</b></p>
-                <p>Error Reduction vs. Naïve: <span style="font-size: 1.3rem; color: #34d399;"><b>{bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
-                <span style="color: #94a3b8; font-size: 0.85rem;">Demonstrates that the architecture transfers with high predictive power to real-world grid load curves.</span>
+                <p>Empirical Test R² Score: <b>{gbm.get('r2', 0):.4f}</b> | Error Reduction: <span style="font-size: 1.15rem; color: #34d399;"><b>{bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
+                <p style="margin-top: 6px; font-size: 0.9rem; color: #cbd5e1;">
+                    <b>Overload Safety (≥90% Feeder Capacity)</b>: Recall: <span style="color:#38bdf8;"><b>{bcm.get('recall', 0):.1f}%</b></span> | Precision: <span style="color:#38bdf8;"><b>{bcm.get('precision', 0):.1f}%</b></span> | F1: <span style="color:#34d399;"><b>{bcm.get('f1', 0):.1f}%</b></span> ({bcm.get('predicted_overload_events', 0)} / {bcm.get('total_overload_events', 0)} events detected)
+                </p>
+                <span style="color: #94a3b8; font-size: 0.82rem;">Demonstrates that the architecture transfers with high predictive power and safety to real-world grid load curves.</span>
             </div>
             """, unsafe_allow_html=True)
 

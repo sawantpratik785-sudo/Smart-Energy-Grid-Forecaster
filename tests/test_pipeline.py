@@ -99,5 +99,14 @@ class TestEnergyGridPipeline(unittest.TestCase):
                 preds = np.array(self.meta['results'][m_name]['sample_predictions']['predicted'])
                 self.assertTrue(np.all(preds > 0), f"Negative load predictions found for {m_name}!")
 
+    def test_empirical_benchmark_metrics(self):
+        """Verify empirical PJM benchmark evaluation is populated with valid error reduction and overload detection."""
+        self.assertIn('empirical_benchmark_results', self.meta, "Empirical benchmark results missing from metadata!")
+        bench = self.meta['empirical_benchmark_results']
+        self.assertGreaterEqual(bench['rmse_reduction_pct'], 60.0, "Benchmark RMSE reduction is below 60%!")
+        cm = bench['classification_metrics']
+        self.assertGreater(cm['total_overload_events'], 0, "Benchmark test set has 0 overload events!")
+        self.assertGreater(cm['f1'], 70.0, "Benchmark overload F1 score is below 70%!")
+
 if __name__ == '__main__':
     unittest.main()

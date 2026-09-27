@@ -648,7 +648,7 @@ with tab2:
                     <li><b>Load Source</b>: PJM Interconnection Hourly Grid Load (<code>PJM_Load_hourly.csv</code> from Kaggle / PJM RTO).</li>
                     <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Historical Weather Archive (Open-Meteo API).</li>
                     <li><b>Feeder Scaling (0.20 Factor)</b>: Steps down macro RTO transmission load into a 3,641 to 9,892 kWh feeder demand envelope, preserving 100% of authentic human and weather patterns.</li>
-                    <li><b>Physical Capacity (8,000 kWh)</b>: Derived from a standard 10 MVA distribution transformer at 0.80 PF (8.0 MW continuous capacity; 90% pre-trip alarm = 7,200 kWh).</li>
+                    <li><b>Physical Feeder Rating (8,000 kW)</b>: Derived from a standard 10 MVA distribution transformer at 0.80 power factor ($P_{\text{rated}} = 10\text{ MVA} \times 0.80 = 8.0\text{ MW} = 8,000\text{ kW}$). Over a 1-hour interval, this allows an 8,000 kWh/h energy throughput threshold; standard DISCOM supervisory alarm convention sets the pre-trip thermal warning at 90% (7,200 kW).</li>
                     <li><b>Evaluation Split</b>: {bench_results.get('total_hours', 8614):,} Hourly Records ({bench_results.get('test_hours', 1723):,} Holdout Test Hours).</li>
                     <li><b>Climatic Scope</b>: Mid-Atlantic Year 2000 (winter heating peaks), proving mathematical transferability beyond synthetic rules.</li>
                 </ul>
@@ -769,7 +769,7 @@ with tab3:
         dc1, dc2 = st.columns(2)
         with dc1:
             population = st.slider("Zone Population", 1000, 100000, st.session_state.preset_pop, step=1000)
-            transformer_cap = st.slider("Transformer Capacity (kWh)", 1000.0, 8000.0, st.session_state.preset_cap, step=100.0)
+            transformer_cap = st.slider("Transformer Rated Capacity (kW)", 1000.0, 8000.0, st.session_state.preset_cap, step=100.0)
         with dc2:
             zone_idx = 1 if st.session_state.preset_zone == "Commercial / MNC Hub" else 0
             zone_type = st.radio("Zone Type", ["Residential", "Commercial / MNC Hub"], index=zone_idx)
@@ -876,7 +876,7 @@ with tab3:
             st.markdown(f"""
             <div class="status-critical">
                 💥 CRITICAL: TRANSFORMER BLAST RISK ({pred_kwh:,.0f} kWh)<br>
-                Demand exceeds physical capacity of {max_capacity:,.0f} kWh! Risk of short circuit or explosion.<br>
+                Demand ({pred_kwh:,.0f} kWh) exceeds rated physical capacity of {max_capacity:,.0f} kW! Risk of short circuit or explosion.<br>
                 <b>ACTION REQUIRED: Initiate targeted Load Shedding of at least {shortage:,.0f} kWh to balance supply equitably.</b>
             </div>
             """, unsafe_allow_html=True)
@@ -884,14 +884,14 @@ with tab3:
             st.markdown(f"""
             <div class="status-warning">
                 ⚡ OVERLOAD WARNING ({pred_kwh:,.0f} kWh)<br>
-                Transformer operating at over 90% capacity. High risk of localized voltage drops and heating. Monitor {zone_type} usage.
+                Transformer operating at over 90% of rated capacity ({max_capacity * 0.90:,.0f} kW). High risk of localized voltage drops and heating. Monitor {zone_type} usage.
             </div>
             """, unsafe_allow_html=True)
         elif q95_val is not None and q95_val >= max_capacity:
             st.markdown(f"""
             <div class="status-tailrisk">
                 ⚠️ TAIL-RISK CAUTION (95th Percentile: {q95_val:,.0f} kWh)<br>
-                While the mean point forecast ({pred_kwh:,.0f} kWh) is below capacity, peak variance could breach {max_capacity:,.0f} kWh.<br>
+                While the mean point forecast ({pred_kwh:,.0f} kWh) is below rated capacity ({max_capacity:,.0f} kW), peak tail risk ({q95_val:,.0f} kWh) could breach capacity.<br>
                 <b>ADVISORY: Put spinning reserves on standby.</b>
             </div>
             """, unsafe_allow_html=True)

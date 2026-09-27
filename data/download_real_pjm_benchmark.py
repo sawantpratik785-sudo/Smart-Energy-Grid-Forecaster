@@ -83,10 +83,12 @@ def build_real_pjm_benchmark(output_path=None):
     df_merged['pjm_raw_mw'] = np.round(df_merged['PJM_Load_MW'], 2)
     df_merged['load_kwh'] = np.round(df_merged['PJM_Load_MW'] * 0.20, 2)
 
-    # Engineering Justification for 8,000 kWh Transformer Capacity:
+    # Engineering Justification for 8,000 kW Transformer Capacity:
     # A standard utility 10 MVA distribution transformer at an industry-standard 0.80 power factor
-    # has a continuous real power rating of: P = S * cos(phi) = 10 MVA * 0.80 = 8.0 MW (8,000 kWh).
-    # Standard utility safety guidelines (IEEE C57.91) place the pre-trip thermal stress alarm at 90% (7,200 kWh).
+    # has a continuous real power rating of: P = S * cos(phi) = 10 MVA * 0.80 = 8.0 MW (8,000 kW).
+    # Over a 1-hour interval (dt = 1 h), this corresponds to an 8,000 kWh/h energy throughput threshold.
+    # While IEEE C57.91 defines transformer hot-spot thermal aging equations, standard utility
+    # SCADA operating practice places the supervisory pre-trip alarm at 90% rated power (7,200 kW / 7,200 kWh/h).
     # Under this physically grounded rating, the holdout winter test period naturally encounters
     # 193 empirical peak overload hours, enabling rigorous out-of-sample safety classification.
     df_merged['transformer_capacity'] = 8000.0

@@ -84,9 +84,9 @@
 - **Primary Dataset Size**: 26,280 hourly observations (8,760 hours × 3 zones = 1 full year).
 - **Target Variable**: `load_kwh` (Continuous electricity load in Kilowatt-hours).
 - **Demographic Sectors**:
-  1. **Sector A (Residential)**: Population 45,000, base load 800 kWh, transformer capacity 2,500 kWh.
-  2. **Sector B (Commercial / MNC Hub)**: Population 12,000, base load 1,500 kWh, transformer capacity 3,500 kWh.
-  3. **Sector C (Industrial)**: Population 5,000, base load 2,200 kWh, transformer capacity 4,500 kWh.
+  1. **Sector A (Residential)**: Population 45,000, base load 800 kWh, transformer capacity 2,500 kW.
+  2. **Sector B (Commercial / MNC Hub)**: Population 12,000, base load 1,500 kWh, transformer capacity 3,500 kW.
+  3. **Sector C (Industrial)**: Population 5,000, base load 2,200 kWh, transformer capacity 4,500 kW.
 
 ### Real-World Physical & Behavioral Governing Rules:
 1. **Diurnal Load Dynamics**:
@@ -233,9 +233,9 @@ To directly address the critique that *"models trained on synthetic formulas onl
 
 - **Data Preprocessing & Lag Alignment**: 8,782 raw hourly records; after 168-hour lookback lag generation (`load_lag_168`), **8,614 valid hourly records** remain, chronologically split into 6,891 training hours (80%) and 1,723 holdout test hours (20%).
 - **Physical Justification for 0.20 Scaling Factor**: PJM's raw telemetry covers the entire regional transmission interconnect (18,208 to 49,462 MW). In power distribution engineering, a single distribution substation feeder services a fractional sub-territory of macro RTO demand. Multiplying by 0.20 downscales the 18–49 MW range into a realistic 3,641 to 9,892 kWh feeder demand envelope, precisely matching the operational demand profile of a standard 10 MVA distribution substation feeder while preserving 100% of authentic human consumption routines, cyclic workday/weekend shapes, weather sensitivity, and holiday effects without synthetic modification.
-- **Physical Derivation of 8,000 kWh Feeder Rating**: A standard utility 10 MVA distribution transformer operating at an industry-standard 0.80 lagging power factor has a continuous real power capacity of:
-  $$P_{\text{rated}} = S \times \cos\phi = 10\text{ MVA} \times 0.80 = 8.0\text{ MW} = 8,000\text{ kWh}$$
-  Under IEEE C57.91 thermal guidelines, the pre-trip supervisory warning is set at 90% continuous rating ($0.90 \times 8,000 = 7,200\text{ kWh}$). Under this physically grounded 8,000 kWh rating, the holdout test period (1,723 hours of real autumn/winter utility load) naturally yields **193 ground truth peak overload hours**, allowing rigorous evaluation of classification safety.
+- **Physical Derivation of 8,000 kW Feeder Rating**: A standard utility 10 MVA distribution transformer operating at an industry-standard 0.80 lagging power factor has a continuous real power capacity of:
+  $$P_{\text{rated}} = S \times \cos\phi = 10\text{ MVA} \times 0.80 = 8.0\text{ MW} = 8,000\text{ kW}$$
+  Over a 1-hour dispatch interval ($\Delta t = 1\text{ h}$), this continuous rating represents an energy throughput threshold of $8,000\text{ kWh/h}$. While IEEE C57.91 defines the thermal modeling and insulation loss-of-life equations, standard utility SCADA operational convention sets a supervisory pre-trip warning threshold at 90% of continuous rated real power ($0.90 \times 8,000\text{ kW} = 7,200\text{ kW}$, corresponding to $7,200\text{ kWh/h}$). Under this physically grounded 8,000 kW rating, the holdout test period (1,723 hours of real autumn/winter utility load) naturally yields **193 ground truth peak overload hours**, allowing rigorous evaluation of classification safety.
 
 ```
 EMPIRICAL UTILITY BENCHMARK EVALUATION (PJM SUBSTATION FEEDER LOAD & ERA5 WEATHER)
@@ -251,7 +251,7 @@ XGBoost                      |   117.50 kWh |    77.10 kWh |   0.9840   |     1.
 ### Empirical Generalization & Safety Detection:
 - **Benchmark Test RMSE**: **110.69 kWh** vs. Naïve Baseline **484.10 kWh** (**77.14% error reduction**).
 - **Empirical Test R² Score**: **0.9858** (MAPE: 1.18%).
-- **Empirical Overload Classification (≥90% Feeder Capacity = 7,200 kWh)**:
+- **Empirical Overload Classification (≥90% Feeder Capacity = 7,200 kW / 7,200 kWh/h)**:
   - **Ground Truth Overloads**: 193 events in holdout test set.
   - **Predicted Overloads**: 194 events.
   - **True Positives**: 174 | **False Positives**: 20 | **False Negatives**: 19 | **True Negatives**: 1,510.
@@ -356,8 +356,8 @@ We implemented an automated test suite in `tests/test_pipeline.py` with **7 comp
 > 2. **Zero-Dependency Edge Deployment**: It runs with zero external C++ library dependencies (such as `libxgboost.so`), making it ultra-reliable on minimal Linux RTU controllers deployed at remote distribution substations.
 > 3. **Accuracy & Safety**: It achieves higher out-of-sample $R^2$ ($0.8740$ vs. $0.8696$ on primary, $0.9858$ vs. $0.9840$ on benchmark) and superior overload recall ($85.4\%$ vs. $82.0\%$), minimizing dangerous false negatives. We explicitly retain XGBoost in the pipeline as a high-throughput edge alternative."*
 
-### Q10: How did you determine the 8,000 kWh feeder capacity rating for the empirical benchmark?
-> **Answer**: *"We derived 8,000 kWh from standard electrical power engineering principles rather than fitting it to data: a standard utility 10 MVA distribution substation transformer operating at an industry-standard 0.80 lagging power factor has a continuous real power capacity of $P = S \times \cos\phi = 10\text{ MVA} \times 0.80 = 8.0\text{ MW} = 8,000\text{ kWh}$. Under IEEE C57.91 guidelines, the pre-trip supervisory thermal warning threshold is set at 90% continuous rating ($7,200\text{ kWh}$). Under this physically grounded rating, the holdout test period naturally encounters 193 peak overload hours, providing a rigorous benchmark for our safety classifier."*
+### Q10: How did you determine the 8,000 kW feeder capacity rating for the empirical benchmark?
+> **Answer**: *"We derived 8,000 kW from standard electrical power engineering principles rather than fitting it to data: a standard utility 10 MVA distribution substation transformer operating at an industry-standard 0.80 lagging power factor has a continuous real power rating of $P = S \times \cos\phi = 10\text{ MVA} \times 0.80 = 8.0\text{ MW} = 8,000\text{ kW}$. Over a 1-hour interval ($\Delta t = 1\text{ h}$), this continuous rating represents an energy throughput threshold of $8,000\text{ kWh/h}$. While IEEE C57.91 defines the thermal modeling and insulation loss-of-life equations, standard utility SCADA operational convention establishes the pre-trip supervisory warning at 90% of continuous rated capacity ($0.90 \times 8,000\text{ kW} = 7,200\text{ kW}$, corresponding to $7,200\text{ kWh/h}$). Under this physically grounded rating, the holdout test period naturally encounters 193 peak overload hours, providing a rigorous benchmark for our safety classifier."*
 
 ### Q11: Does testing on Year 2000 PJM data prove the model works in Pune's summer heatwaves?
 > **Answer**: *"We make a clear, honest distinction: the Year 2000 PJM empirical benchmark proves that our time-series feature engineering and gradient boosting architecture transfer to real-world, noisy utility load dynamics with 77.14% error reduction and 90.16% overload recall without relying on synthetic generation formulas. However, because Year 2000 Mid-Atlantic weather features winter heating peaks rather than tropical cooling regimes, it does not represent Pune's extreme 38°C–44°C pre-monsoon heatwaves. That tropical cooling dynamic is explicitly modeled in our primary multi-zone physical simulator. When public smart meter datasets from MSEDCL become available under RDSS, we will benchmark against local Maharashtra feeders."*

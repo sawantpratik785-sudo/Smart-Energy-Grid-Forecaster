@@ -647,9 +647,10 @@ with tab2:
                 <ul>
                     <li><b>Load Source</b>: PJM Interconnection Hourly Grid Load (<code>PJM_Load_hourly.csv</code> from Kaggle / PJM RTO).</li>
                     <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Historical Weather Archive (Open-Meteo API).</li>
-                    <li><b>Total Observations</b>: {bench_results.get('total_hours', 8782):,} Continuous Hourly Records (Year 2000).</li>
-                    <li><b>Evaluation Split</b>: {bench_results.get('test_hours', 1723):,} Chronological Holdout Test Hours.</li>
-                    <li><b>Physical Verification</b>: True meteorological fluctuations, real diurnal factory/residential cycles, and authentic holidays. Zero synthetic formulas.</li>
+                    <li><b>Feeder Scaling (0.20 Factor)</b>: Steps down macro RTO transmission load into a 3,641 to 9,892 kWh feeder demand envelope, preserving 100% of authentic human and weather patterns.</li>
+                    <li><b>Physical Capacity (8,000 kWh)</b>: Derived from a standard 10 MVA distribution transformer at 0.80 PF (8.0 MW continuous capacity; 90% pre-trip alarm = 7,200 kWh).</li>
+                    <li><b>Evaluation Split</b>: {bench_results.get('total_hours', 8614):,} Hourly Records ({bench_results.get('test_hours', 1723):,} Holdout Test Hours).</li>
+                    <li><b>Climatic Scope</b>: Mid-Atlantic Year 2000 (winter heating peaks), proving mathematical transferability beyond synthetic rules.</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)

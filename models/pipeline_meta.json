@@ -6300,5 +6300,116 @@
     "annual_savings_vs_naive": 126582.52
   },
   "grid_capacity_max_kwh": 9657.9,
-  "peak_demand_threshold_kwh": 3837.2
+  "peak_demand_threshold_kwh": 3837.2,
+  "heuristic_benchmarks": {
+    "evaluation_dataset": "Empirical Substation Utility Benchmark (Real PJM Interconnection Load & ERA5 Weather)",
+    "test_hours": 1723,
+    "total_overload_events": 193,
+    "models": {
+      "Static Persistence Heuristic (t-1)": {
+        "description": "Predicts load(t+1) = load(t); flags overload if load(t) >= 90% capacity (7,200 kW)",
+        "rmse": 275.67,
+        "mae": 202.56,
+        "r2": 0.9117,
+        "mape": 3.39,
+        "overload_recall": 76.68,
+        "overload_precision": 76.68,
+        "overload_f1": 76.68,
+        "fnr": 23.32,
+        "missed_overloads": 45,
+        "operational_lead_time_minutes": 0
+      },
+      "Na\u00efve 24-Hour Seasonality Heuristic (t-24)": {
+        "description": "Predicts load(t+1) = load(t-23); flags overload based on identical hour previous day",
+        "rmse": 484.1,
+        "mae": 338.05,
+        "r2": 0.7277,
+        "mape": 5.65,
+        "overload_recall": 68.39,
+        "overload_precision": 68.75,
+        "overload_f1": 68.57,
+        "fnr": 31.61,
+        "missed_overloads": 61,
+        "operational_lead_time_minutes": 60
+      },
+      "HistGradientBoosting (ML Champion)": {
+        "description": "28-feature gradient-boosted ensemble with temperature non-linearities and calendar lags",
+        "rmse": 110.69,
+        "mae": 74.27,
+        "r2": 0.9858,
+        "mape": 1.18,
+        "overload_recall": 90.16,
+        "overload_precision": 89.69,
+        "overload_f1": 89.92,
+        "fnr": 9.84,
+        "missed_overloads": 19,
+        "operational_lead_time_minutes": 60
+      }
+    },
+    "ml_advantage_summary": {
+      "rmse_reduction_vs_persistence_pct": 59.85,
+      "rmse_reduction_vs_naive24_pct": 77.14,
+      "missed_overloads_reduction_vs_persistence_pct": 57.78,
+      "missed_overloads_reduction_vs_naive24_pct": 68.85
+    }
+  },
+  "statistical_significance": {
+    "test_type": "Paired Residual Statistical Hypothesis Testing on Holdout Test Hours (N=1,723)",
+    "wilcoxon_signed_rank_vs_naive24": {
+      "statistic_W": 121249.0,
+      "p_value": 4.05e-199,
+      "significance": "p < 0.001 (Highly Statistically Significant)"
+    },
+    "wilcoxon_signed_rank_vs_persistence": {
+      "statistic_W": 172313.0,
+      "p_value": 4.14e-168,
+      "significance": "p < 0.001 (Highly Statistically Significant)"
+    },
+    "paired_student_t_test_vs_naive24": {
+      "statistic_t": -31.57,
+      "p_value": 2.91e-173,
+      "significance": "p < 0.001 (Highly Statistically Significant)"
+    }
+  },
+  "diesel_and_carbon_savings": {
+    "dg_generator_rating_kva": 500,
+    "dg_rated_power_kw": 400,
+    "operating_load_kw": 260,
+    "specific_fuel_consumption_liters_per_kwh": 0.28,
+    "hourly_diesel_consumption_liters": 72.8,
+    "cpcb_diesel_emission_factor_kg_co2_per_liter": 2.68,
+    "diesel_price_inr_per_liter": 92.5,
+    "avoided_defensive_generator_hours_annual": 150,
+    "annual_diesel_fuel_saved_liters": 10920,
+    "annual_financial_fuel_savings_inr": 1010100.0,
+    "annual_financial_fuel_savings_usd": 12170.0,
+    "annual_co2_avoided_kg": 29265.6,
+    "annual_co2_avoided_tonnes": 29.27
+  },
+  "literature_benchmarks": [
+    {
+      "citation": "Chen et al. (IEEE Trans. Power Systems, 2004)",
+      "method": "Support Vector Machines (EUNITE Competition)",
+      "target": "Hourly Utility Load",
+      "reported_mape_range": "1.86% \u2013 2.95%"
+    },
+    {
+      "citation": "Hong & Fan (Int. J. Forecasting, 2016)",
+      "method": "GEFCom Gradient Boosting / Neural Ensembles",
+      "target": "Utility-Scale Hourly STLF",
+      "reported_mape_range": "1.80% \u2013 4.20%"
+    },
+    {
+      "citation": "Taieb et al. (IEEE Trans. Power Systems, 2021)",
+      "method": "Coherent Probabilistic Quantile Trees",
+      "target": "Regional Substation Demand",
+      "reported_mape_range": "1.45% \u2013 3.20%"
+    },
+    {
+      "citation": "This Project (HistGradientBoosting + ERA5)",
+      "method": "HistGB + Domain Physics + Pinball Loss",
+      "target": "Empirical Substation Utility Load (PJM/ERA5)",
+      "reported_mape_range": "1.18% (R\u00b2 = 0.9858)"
+    }
+  ]
 }

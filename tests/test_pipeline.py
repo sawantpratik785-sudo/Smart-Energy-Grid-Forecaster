@@ -108,5 +108,28 @@ class TestEnergyGridPipeline(unittest.TestCase):
         self.assertGreater(cm['total_overload_events'], 0, "Benchmark test set has 0 overload events!")
         self.assertGreater(cm['f1'], 70.0, "Benchmark overload F1 score is below 70%!")
 
+    def test_statistical_significance_and_heuristic_superiority(self):
+        """Verify that ML model statistically significantly outperforms non-ML static persistence and naive rules."""
+        self.assertIn('heuristic_benchmarks', self.meta, "Heuristic benchmarks missing from metadata!")
+        self.assertIn('statistical_significance', self.meta, "Statistical significance results missing from metadata!")
+        
+        hb = self.meta['heuristic_benchmarks']['models']
+        ml_rmse = hb['HistGradientBoosting (ML Champion)']['rmse']
+        pers_rmse = hb['Static Persistence Heuristic (t-1)']['rmse']
+        naive_rmse = hb['Naïve 24-Hour Seasonality Heuristic (t-24)']['rmse']
+        
+        self.assertLess(ml_rmse, pers_rmse, "ML RMSE is not lower than static persistence!")
+        self.assertLess(ml_rmse, naive_rmse, "ML RMSE is not lower than 24h naive baseline!")
+        
+        ml_recall = hb['HistGradientBoosting (ML Champion)']['overload_recall']
+        pers_recall = hb['Static Persistence Heuristic (t-1)']['overload_recall']
+        self.assertGreater(ml_recall, pers_recall, "ML overload recall does not beat static persistence!")
+        
+        # Verify p-values are strictly < 0.001
+        sig = self.meta['statistical_significance']
+        self.assertLess(sig['wilcoxon_signed_rank_vs_naive24']['p_value'], 0.001)
+        self.assertLess(sig['wilcoxon_signed_rank_vs_persistence']['p_value'], 0.001)
+        self.assertLess(sig['paired_student_t_test_vs_naive24']['p_value'], 0.001)
+
 if __name__ == '__main__':
     unittest.main()

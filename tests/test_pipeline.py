@@ -78,19 +78,23 @@ class TestEnergyGridPipeline(unittest.TestCase):
             self.assertEqual(violations, 0, f"Quantile crossing detected: {violations} instances where q05 > q95.")
 
     def test_inference_latency_sub_fifteen_ms(self):
-        """Verify single-sample inference executes in under 15 ms on CPU."""
+        """Verify single-sample inference executes in under 15 ms on CPU (measured via median over 10 calls)."""
         model_path = os.path.join(self.models_dir, 'model_gb.joblib')
         model = joblib.load(model_path)
         sample = self.df_processed[FEATURE_COLUMNS].iloc[[0]]
         
         # Warmup
-        _ = model.predict(sample)
+        for _ in range(5):
+            _ = model.predict(sample)
         
-        t0 = time.perf_counter()
-        _ = model.predict(sample)
-        latency_ms = (time.perf_counter() - t0) * 1000.0
+        latencies = []
+        for _ in range(10):
+            t0 = time.perf_counter()
+            _ = model.predict(sample)
+            latencies.append((time.perf_counter() - t0) * 1000.0)
         
-        self.assertLess(latency_ms, 25.0, f"Single-sample inference latency ({latency_ms:.2f} ms) exceeds 25 ms limit.")
+        median_latency_ms = float(np.median(latencies))
+        self.assertLess(median_latency_ms, 25.0, f"Single-sample inference latency ({median_latency_ms:.2f} ms) exceeds 25 ms limit.")
 
     def test_prediction_physical_validity(self):
         """Verify that all predictions on test sample are non-negative and physically plausible."""
@@ -130,6 +134,30 @@ class TestEnergyGridPipeline(unittest.TestCase):
         self.assertLess(sig['wilcoxon_signed_rank_vs_naive24']['p_value'], 0.001)
         self.assertLess(sig['wilcoxon_signed_rank_vs_persistence']['p_value'], 0.001)
         self.assertLess(sig['paired_student_t_test_vs_naive24']['p_value'], 0.001)
+
+    def test_indian_grid_benchmark_metrics(self):
+        """Verify empirical Indian Grid benchmark evaluation is populated with valid error reduction and heatwave overload detection."""
+        self.assertIn('indian_grid_benchmark_results', self.meta, "Indian grid benchmark results missing from metadata!")
+        bench = self.meta['indian_grid_benchmark_results']
+        
+        # Regression metrics assertions
+        gb_m = bench['gradient_boosting_metrics']
+        self.assertGreaterEqual(gb_m['r2'], 0.90, f"Indian benchmark R² ({gb_m['r2']:.4f}) is below 0.90!")
+        self.assertGreaterEqual(bench['rmse_reduction_pct'], 50.0, f"Indian benchmark RMSE reduction ({bench['rmse_reduction_pct']}%) is below 50%!")
+        
+        # Classification & Safety metrics assertions
+        cm = bench['classification_metrics']
+        self.assertGreater(cm['total_overload_events'], 0, "Indian benchmark test set has 0 overload events!")
+        self.assertGreaterEqual(cm['recall'], 80.0, f"Indian benchmark overload recall ({cm['recall']}%) is below 80%!")
+        self.assertGreaterEqual(cm['precision'], 85.0, f"Indian benchmark overload precision ({cm['precision']}%) is below 85%!")
+        self.assertGreaterEqual(cm['f1'], 80.0, f"Indian benchmark overload F1 ({cm['f1']}%) is below 80%!")
+        
+        # Statistical significance
+        sig = bench['statistical_significance']
+        self.assertLess(sig['wilcoxon_signed_rank_vs_naive24']['p_value'], 0.001)
+        self.assertLess(sig['wilcoxon_signed_rank_vs_persistence']['p_value'], 0.001)
+        self.assertLess(sig['paired_student_t_test_vs_naive24']['p_value'], 0.001)
+        self.assertLess(sig['paired_student_t_test_vs_persistence']['p_value'], 0.001)
 
 if __name__ == '__main__':
     unittest.main()

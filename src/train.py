@@ -29,7 +29,10 @@ from sklearn.metrics import (
     mean_absolute_percentage_error, confusion_matrix
 )
 import xgboost as xgb
-import shap
+try:
+    import shap
+except Exception:
+    shap = None
 
 try:
     from features import create_time_series_features, FEATURE_COLUMNS

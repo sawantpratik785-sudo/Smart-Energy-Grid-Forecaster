@@ -243,6 +243,7 @@ results = meta['results']
 feature_cols = meta['feature_columns']
 cv_summary = meta.get('walk_forward_cv_summary', {})
 bench_results = meta.get('empirical_benchmark_results', {})
+indian_bench_results = meta.get('indian_grid_benchmark_results', {})
 tuning_log = meta.get('hyperparameter_tuning', {})
 ablation_study = meta.get('ablation_study', {})
 latency_bench = meta.get('inference_benchmarks', {})
@@ -631,106 +632,190 @@ with tab2:
 
     # 9. Empirical Utility Benchmark Generalization
     st.markdown("---")
-    st.subheader("🌐 Empirical Utility Benchmark Validation")
+    st.subheader("🌐 Dual-Continent Real-World Utility Benchmark Validation")
     st.markdown("""
-    **Addressing the 'Purely Synthetic Data' Critique**:
-    To prove that our feature engineering and tree-based architecture are not merely memorizing synthetic generation formulas, 
-    the pipeline was validated against an **Authentic Empirical Utility Benchmark** constructed from official **PJM Interconnection** regional grid loads merged with **ECMWF ERA5 Reanalysis** historical weather data (Open-Meteo archive for 39.95°N, -75.16°W).
+    **Conclusively Addressing the 'Purely Synthetic Data' Critique**:
+    To demonstrate that our 28-feature engineering pipeline and HistGradientBoosting architecture generalize to authentic utility operations rather than memorizing synthetic formulas, the pipeline is evaluated across two distinct empirical power systems:
+    1. **US PJM Interconnection Benchmark**: 8,614 hours of real utility telemetry (Temperate zone, winter heating peaks).
+    2. **Indian Regional Grid Benchmark (Delhi SLDC / Grid-India)**: 8,292 hours of real utility telemetry (Tropical zone, extreme pre-monsoon heatwaves reaching 46.2°C).
     """)
-    
-    if bench_results:
-        bc1, bc2 = st.columns([1, 1])
-        with bc1:
-            st.markdown(f"""
-            <div class="badge-card">
-                <h4 style="color: #38bdf8; margin-top: 0;">🏛️ Authentic Reference Dataset Provenance</h4>
-                <ul>
-                    <li><b>Load Source</b>: PJM Interconnection Hourly Grid Load (<code>PJM_Load_hourly.csv</code> from Kaggle / PJM RTO).</li>
-                    <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Historical Weather Archive (Open-Meteo API).</li>
-                    <li><b>Feeder Scaling (0.20 Factor)</b>: Steps down macro RTO transmission load into a 3,641 to 9,892 kWh feeder demand envelope, preserving 100% of authentic human and weather patterns.</li>
-                    <li><b>Physical Feeder Rating (8,000 kW)</b>: Derived from a standard 10 MVA distribution transformer at 0.80 power factor (10 MVA &times; 0.80 = 8.0 MW = 8,000 kW). Over a 1-hour interval, this allows an 8,000 kWh/h energy throughput threshold; standard DISCOM supervisory alarm convention sets the pre-trip thermal warning at 90% (7,200 kW).</li>
-                    <li><b>Evaluation Split</b>: {bench_results.get('total_hours', 8614):,} Hourly Records ({bench_results.get('test_hours', 1723):,} Holdout Test Hours).</li>
-                    <li><b>Climatic Scope</b>: Mid-Atlantic Year 2000 (winter heating peaks), proving mathematical transferability beyond synthetic rules.</li>
+
+    # Dual Continent Cards
+    tab_bench_pjm, tab_bench_india = st.tabs(["🇺🇸 Benchmark A: US PJM Interconnection", "🇮🇳 Benchmark B: Indian Regional Grid (Delhi SLDC)"])
+
+    with tab_bench_pjm:
+        if bench_results:
+            bc1, bc2 = st.columns([1, 1])
+            with bc1:
+                st.markdown(f"""
+                <div class="badge-card">
+                    <h4 style="color: #38bdf8; margin-top: 0;">🏛️ Dataset Provenance & Engineering Scaling</h4>
+                    <ul>
+                        <li><b>Utility Telemetry</b>: Official PJM Interconnection Hourly Grid Load (<code>PJM_Load_hourly.csv</code>).</li>
+                        <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Historical Archive (39.95°N, -75.16°W).</li>
+                        <li><b>Feeder Scaling (0.20 Factor)</b>: Steps down macro RTO transmission load into a 3,641 to 9,892 kWh feeder demand envelope.</li>
+                        <li><b>Physical Feeder Rating (8,000 kW)</b>: Derived from a standard 10 MVA distribution transformer at 0.80 PF (8,000 kW rated, 90% SCADA alarm at 7,200 kW).</li>
+                        <li><b>Evaluation Split</b>: {bench_results.get('total_hours', 8614):,} Hourly Records ({bench_results.get('test_hours', 1723):,} Holdout Test Hours).</li>
+                        <li><b>Climate Regime</b>: Mid-Atlantic Temperate (-12°C to 34°C).</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+            with bc2:
+                gbm = bench_results.get('gradient_boosting_metrics', {})
+                nbm = bench_results.get('naive_baseline_metrics', {})
+                bcm = bench_results.get('classification_metrics', {})
+                st.markdown(f"""
+                <div class="badge-card">
+                    <h4 style="color: #34d399; margin-top: 0;">📈 PJM Generalization Performance</h4>
+                    <p>Gradient Boosting Test RMSE: <b>{gbm.get('rmse', 0):.2f} kWh</b> (vs. Naïve Baseline {nbm.get('rmse', 0):.2f} kWh)</p>
+                    <p>Empirical Test R² Score: <b>{gbm.get('r2', 0):.4f}</b> | Error Reduction: <span style="font-size: 1.15rem; color: #34d399;"><b>{bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
+                    <p style="margin-top: 6px; font-size: 0.9rem; color: #cbd5e1;">
+                        <b>Overload Safety (≥90% Feeder Capacity)</b>: Recall: <span style="color:#38bdf8;"><b>{bcm.get('recall', 0):.1f}%</b></span> | Precision: <span style="color:#38bdf8;"><b>{bcm.get('precision', 0):.1f}%</b></span> | F1: <span style="color:#34d399;"><b>{bcm.get('f1', 0):.1f}%</b></span> ({bcm.get('predicted_overload_events', 0)} / {bcm.get('total_overload_events', 0)} events detected)
+                    </p>
+                    <span style="color: #94a3b8; font-size: 0.82rem;">Confirms mathematical transferability to North American utility load profiles with 1.18% test MAPE.</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+    with tab_bench_india:
+        if indian_bench_results:
+            ibc1, ibc2 = st.columns([1, 1])
+            with ibc1:
+                st.markdown(f"""
+                <div class="badge-card">
+                    <h4 style="color: #f59e0b; margin-top: 0;">🏛️ Dataset Provenance & Indian Heatwave Conditions</h4>
+                    <ul>
+                        <li><b>Utility Telemetry</b>: Delhi State Load Despatch Centre (SLDC) / Grid-India 5-minute SCADA recordings (<code>delhi_demand_raw.csv</code>).</li>
+                        <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Archive for National Capital Territory (28.61°N, 77.21°E).</li>
+                        <li><b>Feeder Scaling (1.10 Factor)</b>: Maps macro MW into a 1,685 to 9,422 kW heavy distribution feeder serving 140,000 residents in an industrial/commercial cluster.</li>
+                        <li><b>Physical Feeder Rating (8,000 kW)</b>: Standard 10 MVA transformer (0.80 PF) with 90% SCADA alarm at 7,200 kW.</li>
+                        <li><b>Holdout Test Period</b>: {indian_bench_results.get('test_hours', 1659):,} Test Hours (April 19 – June 30, 2024), capturing the peak Indian pre-monsoon heatwave (temperatures reaching <b>46.2°C</b>).</li>
+                        <li><b>Overload Severity</b>: Contains <b>362 real overload hours</b> due to heavy residential and commercial AC cooling demands.</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+            with ibc2:
+                igbm = indian_bench_results.get('gradient_boosting_metrics', {})
+                inbm = indian_bench_results.get('naive_baseline_metrics', {})
+                ibcm = indian_bench_results.get('classification_metrics', {})
+                st.markdown(f"""
+                <div class="badge-card">
+                    <h4 style="color: #34d399; margin-top: 0;">📈 Indian Heatwave Benchmark Performance</h4>
+                    <p>Gradient Boosting Test RMSE: <b>{igbm.get('rmse', 0):.2f} kWh</b> (vs. Naïve Baseline {inbm.get('rmse', 0):.2f} kWh)</p>
+                    <p>Empirical Test R² Score: <b>{igbm.get('r2', 0):.4f}</b> | Error Reduction: <span style="font-size: 1.15rem; color: #34d399;"><b>{indian_bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
+                    <p style="margin-top: 6px; font-size: 0.9rem; color: #cbd5e1;">
+                        <b>Overload Safety (≥90% Feeder Capacity)</b>: Recall: <span style="color:#38bdf8;"><b>{ibcm.get('recall', 0):.1f}%</b></span> | Precision: <span style="color:#38bdf8;"><b>{ibcm.get('precision', 0):.1f}%</b></span> | F1: <span style="color:#34d399;"><b>{ibcm.get('f1', 0):.1f}%</b></span> ({ibcm.get('predicted_overload_events', 0)} / {ibcm.get('total_overload_events', 0)} events detected)
+                    </p>
+                    <span style="color: #94a3b8; font-size: 0.82rem;">Successfully detects 301 out of 362 extreme summer overloads (83.15% recall) with only 21 false alarms (93.48% precision) in 46°C heatwaves.</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # Cross-Continent Comparison Table
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="badge-card">
+        <h4 style="color: #38bdf8; margin-top: 0;">🗺️ Dual-Continent Empirical Cross-Validation Summary</h4>
+        <table style="width:100%; font-size:0.8rem; color:#cbd5e1; border-collapse: collapse; margin-top: 6px;">
+            <tr style="border-bottom: 1px solid #475569; text-align: left; color: #94a3b8;">
+                <th style="padding: 6px;">Evaluation Dimension</th>
+                <th style="padding: 6px;">🇺🇸 US PJM Interconnection</th>
+                <th style="padding: 6px;">🇮🇳 Indian Regional Grid (Delhi SLDC)</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Climatic & Ambient Profile</b></td>
+                <td style="padding: 5px;">Temperate Mid-Atlantic (-12°C to 34°C)</td>
+                <td style="padding: 5px;">Tropical Pre-Monsoon Heatwave (5.3°C to 46.2°C)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Total Telemetry Records</b></td>
+                <td style="padding: 5px;">8,614 Hourly Hours (1,723 Test Hours)</td>
+                <td style="padding: 5px;">8,292 Hourly Hours (1,659 Test Hours)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Naïve Baseline RMSE</b></td>
+                <td style="padding: 5px;">484.10 kWh</td>
+                <td style="padding: 5px;">1,093.39 kWh</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Champion HistGB RMSE</b></td>
+                <td style="padding: 5px; color: #34d399; font-weight:700;">110.69 kWh (77.14% cut)</td>
+                <td style="padding: 5px; color: #34d399; font-weight:700;">384.92 kWh (64.80% cut)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Test R² Score / MAPE</b></td>
+                <td style="padding: 5px;">R² = 0.9858 | MAPE = 1.18%</td>
+                <td style="padding: 5px;">R² = 0.9352 | MAPE = 3.22%</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Holdout Overload Ground Truth (≥7,200 kW)</b></td>
+                <td style="padding: 5px;">193 Events (Winter Heating Peaks)</td>
+                <td style="padding: 5px;">362 Events (Summer Heatwave Peaks)</td>
+            </tr>
+            <tr style="background: rgba(16, 185, 129, 0.12); font-weight: 700;">
+                <td style="padding: 5px; color: #34d399;">Overload Safety Recall / Precision</td>
+                <td style="padding: 5px; color: #34d399;">90.16% Recall | 89.69% Precision</td>
+                <td style="padding: 5px; color: #34d399;">83.15% Recall | 93.48% Precision</td>
+            </tr>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 10. Heuristic Benchmarking & Statistical Significance
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+    h_col1, h_col2 = st.columns([1, 1])
+    with h_col1:
+        st.markdown("""
+        <div class="badge-card">
+            <h4 style="color: #fbbf24; margin-top: 0;">⚖️ Why ML is Earned: Benchmarking Non-ML Heuristics</h4>
+            <p style="font-size: 0.82rem; color: #cbd5e1;">Evaluators ask: <i>'Why not just use a simple static persistence rule?'</i> Comparing against non-ML baselines across both authentic grids:</p>
+            <table style="width:100%; font-size:0.75rem; color:#cbd5e1; border-collapse: collapse; margin-top: 6px;">
+                <tr style="border-bottom: 1px solid #475569; text-align: left; color: #94a3b8;">
+                    <th style="padding: 4px;">Baseline Method</th>
+                    <th style="padding: 4px;">PJM Recall (Missed/193)</th>
+                    <th style="padding: 4px;">Indian Recall (Missed/362)</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 4px;">Static Persistence ($t-1$)</td>
+                    <td style="padding: 4px; color: #f87171;">76.68% (45 missed)</td>
+                    <td style="padding: 4px; color: #f87171;">81.77% (66 missed)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 4px;">Naïve 24-Hour ($t-24$)</td>
+                    <td style="padding: 4px; color: #f87171;">68.39% (61 missed)</td>
+                    <td style="padding: 4px; color: #f87171;">72.10% (101 missed)</td>
+                </tr>
+                <tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700;">
+                    <td style="padding: 4px; color: #34d399;">HistGB ML Champion (🏆)</td>
+                    <td style="padding: 4px; color: #34d399;">90.16% (19 missed)</td>
+                    <td style="padding: 4px; color: #34d399;">83.15% (61 missed)</td>
+                </tr>
+            </table>
+            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 8px;">
+                <b>Result</b>: ML cuts missed overloads by <b>57.8% on PJM</b> and provides a <b>60-minute lookahead</b> that reactive threshold rules cannot deliver.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with h_col2:
+        st.markdown("""
+        <div class="badge-card">
+            <h4 style="color: #a78bfa; margin-top: 0;">🔬 Statistical Significance & Literature Context</h4>
+            <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px;">
+                <b>Hypothesis Testing on Residuals ($p$-values):</b>
+                <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.76rem;">
+                    <li><b>Wilcoxon Signed-Rank vs Naïve $t-24$</b>: PJM $p = 4.05 \\times 10^{-199}$ | Indian $p = 4.98 \\times 10^{-149}$ ($p \\ll 0.001$).</li>
+                    <li><b>Wilcoxon Signed-Rank vs Persistence $t-1$</b>: PJM $p = 4.14 \\times 10^{-168}$ | Indian $p = 8.01 \\times 10^{-109}$ ($p \\ll 0.001$).</li>
+                    <li><b>Paired Student's t-test</b>: PJM $p = 2.91 \\times 10^{-173}$ | Indian $p = 1.50 \\times 10^{-100}$ ($p \\ll 0.001$).</li>
                 </ul>
             </div>
-            """, unsafe_allow_html=True)
-        with bc2:
-            gbm = bench_results.get('gradient_boosting_metrics', {})
-            nbm = bench_results.get('naive_baseline_metrics', {})
-            bcm = bench_results.get('classification_metrics', {})
-            st.markdown(f"""
-            <div class="badge-card">
-                <h4 style="color: #34d399; margin-top: 0;">📈 Benchmark Generalization Results</h4>
-                <p>Gradient Boosting Test RMSE: <b>{gbm.get('rmse', 0):.2f} kWh</b> (vs. Naïve Baseline {nbm.get('rmse', 0):.2f} kWh)</p>
-                <p>Empirical Test R² Score: <b>{gbm.get('r2', 0):.4f}</b> | Error Reduction: <span style="font-size: 1.15rem; color: #34d399;"><b>{bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
-                <p style="margin-top: 6px; font-size: 0.9rem; color: #cbd5e1;">
-                    <b>Overload Safety (≥90% Feeder Capacity)</b>: Recall: <span style="color:#38bdf8;"><b>{bcm.get('recall', 0):.1f}%</b></span> | Precision: <span style="color:#38bdf8;"><b>{bcm.get('precision', 0):.1f}%</b></span> | F1: <span style="color:#34d399;"><b>{bcm.get('f1', 0):.1f}%</b></span> ({bcm.get('predicted_overload_events', 0)} / {bcm.get('total_overload_events', 0)} events detected)
-                </p>
-                <span style="color: #94a3b8; font-size: 0.82rem;">Demonstrates that the architecture transfers with high predictive power and safety to real-world grid load curves.</span>
+            <div style="font-size: 0.82rem; color: #cbd5e1;">
+                <b>Published STLF Literature Context (Hourly MAPE):</b>
+                <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.76rem;">
+                    <li>Chen et al. (IEEE Trans. Power Syst.): <i>1.86% – 2.95% MAPE</i></li>
+                    <li>Hong & Fan (Int. J. Forecasting): <i>1.80% – 4.20% MAPE</i></li>
+                    <li><b>Our Pipeline (PJM / Indian Benchmark)</b>: <b style="color: #34d399;">1.18% / 3.22% MAPE ($R^2 = 0.9858$ / $0.9352$)</b></li>
+                </ul>
             </div>
-            """, unsafe_allow_html=True)
-
-        # 10. Heuristic Benchmarking & Statistical Significance
-        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-        h_col1, h_col2 = st.columns([1, 1])
-        with h_col1:
-            st.markdown("""
-            <div class="badge-card">
-                <h4 style="color: #fbbf24; margin-top: 0;">⚖️ Why ML is Earned: Benchmarking Non-ML Heuristics</h4>
-                <p style="font-size: 0.82rem; color: #cbd5e1;">Evaluators ask: <i>'Why not just use a simple static threshold rule?'</i> Empirical comparison against standard non-ML heuristics on 1,723 real utility test hours:</p>
-                <table style="width:100%; font-size:0.78rem; color:#cbd5e1; border-collapse: collapse; margin-top: 6px;">
-                    <tr style="border-bottom: 1px solid #475569; text-align: left; color: #94a3b8;">
-                        <th style="padding: 4px;">Baseline Method</th>
-                        <th style="padding: 4px;">RMSE</th>
-                        <th style="padding: 4px;">Recall</th>
-                        <th style="padding: 4px;">Missed (of 193)</th>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #334155;">
-                        <td style="padding: 4px;">Static Persistence ($t-1$)</td>
-                        <td style="padding: 4px;">275.67 kWh</td>
-                        <td style="padding: 4px; color: #f87171;">76.68%</td>
-                        <td style="padding: 4px; color: #f87171;">45 events</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #334155;">
-                        <td style="padding: 4px;">Naïve 24-Hour ($t-24$)</td>
-                        <td style="padding: 4px;">484.10 kWh</td>
-                        <td style="padding: 4px; color: #f87171;">68.39%</td>
-                        <td style="padding: 4px; color: #f87171;">61 events</td>
-                    </tr>
-                    <tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700;">
-                        <td style="padding: 4px; color: #34d399;">HistGB ML Champion (🏆)</td>
-                        <td style="padding: 4px; color: #34d399;">110.69 kWh</td>
-                        <td style="padding: 4px; color: #34d399;">90.16%</td>
-                        <td style="padding: 4px; color: #34d399;">19 events</td>
-                    </tr>
-                </table>
-                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 8px;">
-                    <b>Result</b>: ML reduces missed overloads by <b>57.8%</b> vs. static persistence and provides a <b>60-minute advance lookahead</b> that reactive threshold rules cannot deliver.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        with h_col2:
-            st.markdown("""
-            <div class="badge-card">
-                <h4 style="color: #a78bfa; margin-top: 0;">🔬 Statistical Significance & Literature Benchmarks</h4>
-                <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px;">
-                    <b>Hypothesis Testing on Residuals ($N=1,723$ paired test hours):</b>
-                    <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.78rem;">
-                        <li><b>Wilcoxon Signed-Rank Test</b> (vs. Naïve $t-24$): $W = 121,249.0$, <b>$p = 4.05 \\times 10^{-199}$</b> ($p \\ll 0.001$).</li>
-                        <li><b>Wilcoxon Signed-Rank Test</b> (vs. Persistence $t-1$): $W = 172,313.0$, <b>$p = 4.14 \\times 10^{-168}$</b> ($p \\ll 0.001$).</li>
-                        <li><b>Paired Student's t-test</b>: $t = -31.57$, <b>$p = 2.91 \\times 10^{-173}$</b> ($p \\ll 0.001$).</li>
-                    </ul>
-                </div>
-                <div style="font-size: 0.82rem; color: #cbd5e1;">
-                    <b>Published STLF Literature Context (Hourly Utility MAPE):</b>
-                    <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.78rem;">
-                        <li>Chen et al. (IEEE Trans. Power Syst.): <i>1.86% – 2.95% MAPE</i></li>
-                        <li>Hong & Fan (Int. J. Forecasting): <i>1.80% – 4.20% MAPE</i></li>
-                        <li><b>Our Architecture (HistGB + ERA5)</b>: <b style="color: #34d399;">1.18% MAPE ($R^2 = 0.9858$)</b></li>
-                    </ul>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
         # 11. Safety Failsafe Boundary
         st.markdown("""
@@ -765,16 +850,16 @@ with tab3:
         st.session_state.preset_lag24 = 1250.0
 
     with p1:
-        if st.button("🔥 May Heatwave (42°C, 8 PM)", use_container_width=True):
-            st.session_state.preset_hour = 20
-            st.session_state.preset_temp = 42.0
-            st.session_state.preset_humidity = 40.0
-            st.session_state.preset_pop = 52000
-            st.session_state.preset_cap = 2500.0
-            st.session_state.preset_zone = "Residential"
+        if st.button("🔥 Delhi Heatwave (46°C, 3 PM)", use_container_width=True):
+            st.session_state.preset_hour = 15
+            st.session_state.preset_temp = 46.0
+            st.session_state.preset_humidity = 35.0
+            st.session_state.preset_pop = 100000
+            st.session_state.preset_cap = 8000.0
+            st.session_state.preset_zone = "Commercial / MNC Hub"
             st.session_state.preset_weekend = False
-            st.session_state.preset_lag1 = 2600.0
-            st.session_state.preset_lag24 = 2650.0
+            st.session_state.preset_lag1 = 7400.0
+            st.session_state.preset_lag24 = 7350.0
             st.rerun()
 
     with p2:

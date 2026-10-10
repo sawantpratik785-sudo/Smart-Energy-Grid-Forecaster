@@ -6411,5 +6411,206 @@
       "target": "Empirical Substation Utility Load (PJM/ERA5)",
       "reported_mape_range": "1.18% (R\u00b2 = 0.9858)"
     }
-  ]
+  ],
+  "indian_grid_benchmark_results": {
+    "dataset_name": "Empirical Indian Substation Utility Benchmark (Delhi SLDC / Grid-India Telemetry & ERA5 Weather)",
+    "total_hours": 8292,
+    "test_hours": 1659,
+    "gradient_boosting_metrics": {
+      "rmse": 384.9206193496143,
+      "mae": 190.25206930000124,
+      "r2": 0.9352462545119218,
+      "mape": 3.2192985640948746
+    },
+    "naive_baseline_metrics": {
+      "rmse": 1093.386994984652,
+      "mae": 672.8027004219409,
+      "r2": 0.4775191827290898,
+      "mape": 13.67849759686528
+    },
+    "persistence_metrics": {
+      "rmse": 441.0298765914081,
+      "mae": 294.3471308016878,
+      "r2": 0.9149922417130596,
+      "mape": 5.306465927250604
+    },
+    "classification_metrics": {
+      "confusion_matrix": [
+        [
+          1276,
+          21
+        ],
+        [
+          61,
+          301
+        ]
+      ],
+      "precision": 93.48,
+      "recall": 83.15,
+      "specificity": 98.38,
+      "f1": 88.01,
+      "fnr": 16.85,
+      "total_overload_events": 362,
+      "predicted_overload_events": 322
+    },
+    "rmse_reduction_pct": 64.8,
+    "statistical_significance": {
+      "wilcoxon_signed_rank_vs_naive24": {
+        "p_value": 4.977379820228097e-149,
+        "significant_at_alpha_001": true
+      },
+      "wilcoxon_signed_rank_vs_persistence": {
+        "p_value": 8.011148173202902e-109,
+        "significant_at_alpha_001": true
+      },
+      "paired_student_t_test_vs_naive24": {
+        "p_value": 1.5000525517910355e-100,
+        "significant_at_alpha_001": true
+      },
+      "paired_student_t_test_vs_persistence": {
+        "p_value": 7.446167026331642e-51,
+        "significant_at_alpha_001": true
+      }
+    },
+    "all_models": {
+      "Static Persistence Heuristic (t-1)": {
+        "rmse": 441.0298765914081,
+        "mae": 294.3471308016878,
+        "r2": 0.9149922417130596,
+        "mape": 5.306465927250604,
+        "recall": 81.77,
+        "precision": 81.99,
+        "specificity": 94.99,
+        "f1": 81.88,
+        "fnr": 18.23,
+        "confusion_matrix": [
+          [
+            1232,
+            65
+          ],
+          [
+            66,
+            296
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 361
+      },
+      "Na\u00efve 24-Hour Seasonality Heuristic (t-24)": {
+        "rmse": 1093.386994984652,
+        "mae": 672.8027004219409,
+        "r2": 0.4775191827290898,
+        "mape": 13.67849759686528,
+        "recall": 72.1,
+        "precision": 72.5,
+        "specificity": 92.37,
+        "f1": 72.3,
+        "fnr": 27.9,
+        "confusion_matrix": [
+          [
+            1198,
+            99
+          ],
+          [
+            101,
+            261
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 360
+      },
+      "Ridge Regression": {
+        "rmse": 402.21915953518237,
+        "mae": 242.1834487164407,
+        "r2": 0.9292953380003303,
+        "mape": 4.408187422517274,
+        "recall": 80.94,
+        "precision": 90.99,
+        "specificity": 97.76,
+        "f1": 85.67,
+        "fnr": 19.06,
+        "confusion_matrix": [
+          [
+            1268,
+            29
+          ],
+          [
+            69,
+            293
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 322
+      },
+      "Random Forest": {
+        "rmse": 411.3785293029145,
+        "mae": 221.45689701307356,
+        "r2": 0.9260384873737249,
+        "mape": 3.757196453979467,
+        "recall": 78.45,
+        "precision": 95.3,
+        "specificity": 98.92,
+        "f1": 86.06,
+        "fnr": 21.55,
+        "confusion_matrix": [
+          [
+            1283,
+            14
+          ],
+          [
+            78,
+            284
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 298
+      },
+      "HistGradientBoosting (ML Champion)": {
+        "rmse": 384.9206193496143,
+        "mae": 190.25206930000124,
+        "r2": 0.9352462545119218,
+        "mape": 3.2192985640948746,
+        "recall": 83.15,
+        "precision": 93.48,
+        "specificity": 98.38,
+        "f1": 88.01,
+        "fnr": 16.85,
+        "confusion_matrix": [
+          [
+            1276,
+            21
+          ],
+          [
+            61,
+            301
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 322
+      },
+      "XGBoost": {
+        "rmse": 434.71301965533934,
+        "mae": 237.8163641324311,
+        "r2": 0.9174099294429174,
+        "mape": 4.054840730681248,
+        "recall": 70.44,
+        "precision": 95.86,
+        "specificity": 99.15,
+        "f1": 81.21,
+        "fnr": 29.56,
+        "confusion_matrix": [
+          [
+            1286,
+            11
+          ],
+          [
+            107,
+            255
+          ]
+        ],
+        "total_overload_events": 362,
+        "predicted_overload_events": 266
+      }
+    }
+  }
 }

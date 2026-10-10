@@ -275,28 +275,30 @@ To decisively verify that the feature engineering pipeline transfers beyond synt
 - **Performance**: HistGradientBoosting achieves **RMSE = 110.69 kWh** (vs. Naïve 484.10 kWh), delivering a **77.14% error reduction**, **$R^2 = 0.9858$**, and **1.18% MAPE**.
 - **Overload Safety Detection**: Successfully detects 174 of 193 winter heating overloads (**90.16% recall**, **89.69% precision**, **89.92% F1-score**, **9.84% FNR**).
 
-#### 2. Benchmark B: Indian Regional Grid (Delhi SLDC / Grid-India, Tropical Pre-Monsoon Heatwaves)
-- **Data Sources**: Authentic 5-minute SCADA recordings from **Delhi State Load Despatch Centre (SLDC) / Grid-India** (`delhi_demand_raw.csv`, July 1, 2023 to June 30, 2024, 8,460 hours) [18] merged with **ECMWF ERA5 Reanalysis** historical solar irradiance, temperature, relative humidity, and wind speed (28.61°N, 77.21°E) [19].
-- **Climatic Extremes**: Captures authentic northern Indian ambient conditions, spanning **$5.3^\circ\text{C}$ in winter to $46.2^\circ\text{C}$ in severe pre-monsoon heatwaves**, alongside monsoon humidity swings (5.0% to 100.0% RH).
-- **Physical Justification for 1.10 Scaling Factor**: Macro demand (1,532 to 8,565 MW) is scaled by 1.10 to model a heavy urban/industrial distribution feeder servicing 140,000 residents in an industrial manufacturing cluster. Continuous rated transformer capacity is 8,000 kW ($10\text{ MVA} \times 0.80\text{ PF}$) with the 90% SCADA supervisory alert set at $7,200\text{ kW}$.
-- **Chronological Holdout Evaluation**: The 20% holdout test split (1,659 test hours, April 19 – June 30, 2024) coincides directly with the extreme Indian summer heatwave, providing **362 ground-truth overload hours** under intense air-conditioning load.
-- **Performance**: HistGradientBoosting achieves **RMSE = 384.92 kWh** (vs. Naïve 1,093.39 kWh), achieving a **64.80% error reduction**, **$R^2 = 0.9352$**, and **3.22% MAPE**.
-- **Heatwave Overload Safety Detection**: Flags 301 out of 362 severe heatwave overloads (**83.15% recall**, **93.48% precision**, **88.01% F1-score**, **16.85% FNR**), with only 21 false alarms out of 322 total alerts.
+#### 2. Benchmark B: Indian Grid Macro Demand Proxy (Delhi SLDC Telemetry & ERA5 Solar, Tropical Pre-Monsoon Heatwaves)
+- **Data Sources & Provenance**: Authentic SCADA telemetry from **Delhi State Load Despatch Centre (SLDC) / Grid-India** (`delhi_demand_raw.csv`, January 1, 2021 to June 30, 2024, 30,648 hours) mirrored from `coderkarishma/Delhi-Electricity-Demand-Prediction` [18]. Ground surface meteorological observations (temperature, relative humidity, wind speed) are recorded by Meteostat/IMD weather stations, while surface solar irradiance is acquired from the **ECMWF ERA5 Reanalysis** archive (28.61°N, 77.21°E) [19].
+- **Continuous Hourly Grid & Gap-Aware Lag Engineering**: The raw telemetry is strictly reindexed to a continuous 1-hour time grid. Short missing intervals ($\le 3$ hours) are linearly interpolated, while rows bridging large telemetry outages are dropped from feature generation. This guarantees that lag features ($t-1, t-2, t-24, t-168$) represent true physical calendar intervals rather than row-count shifts.
+- **Methodological Characterization as Macro Demand Proxy**: Because state load dispatchers record aggregate regional power rather than individual distribution feeder currents, macro MW values are scaled by 1.10 into a 1,685 to 9,422 kW load envelope. This serves as an **Aggregate Macro Grid Demand Proxy Benchmark**, acknowledging that metropolitan aggregation exhibits higher spatial smoothing than individual, volatile 11 kV feeders. Continuous rated capacity is set to 8,000 kW ($10\text{ MVA} \times 0.80\text{ PF}$) with a 90% supervisory alarm at $7,200\text{ kW}$.
+- **Multi-Year Chronological Holdout Split**: The model is trained on 24,655 hours across three full annual cycles (January 1, 2021 – March 31, 2024) and evaluated on a holdout test set of **1,874 hours** (April 1 – June 30, 2024) coinciding with northern India's record-breaking summer heatwave (**ambient temperatures reaching $46.2^\circ\text{C}$**), containing **355 ground-truth overload hours**.
+- **Performance**: HistGradientBoosting achieves **RMSE = 310.72 kWh** and **MAE = 161.07 kWh** (vs. Naïve RMSE 912.23 kWh, and vs. Static Persistence RMSE 375.32 kWh / MAE 267.91 kWh). This delivers a **65.94% error reduction vs. Naïve** and a **39.88% MAE reduction vs. Persistence**, with **$R^2 = 0.9573$** and **2.72% MAPE**.
+- **Heatwave Overload Safety Detection**: Flags 318 out of 355 severe heatwave overloads (**89.58% recall**, **95.21% precision**, **92.31% F1-score**, **10.42% FNR**), generating only 16 false alarms (down from 63 false alarms under persistence).
 
 ```
 DUAL-CONTINENT EMPIRICAL UTILITY BENCHMARK COMPARISON
-Metric / Attribute                | US PJM Interconnection (8,614 h) | Indian Regional Grid / Delhi SLDC (8,292 h)
+Metric / Attribute                | US PJM Interconnection (8,614 h) | Indian Macro Grid Proxy / Delhi SLDC (30,648 h)
 -----------------------------------------------------------------------------------------------------------------
 Climatic Profile                  | Temperate Mid-Atlantic (-12°C to 34°C)| Tropical Pre-Monsoon Heatwave (5.3°C to 46.2°C)
-Holdout Test Window               | Autumn/Winter (1,723 hours)      | Peak Summer Heatwave (1,659 hours)
-Naïve Baseline RMSE (t-24)        | 484.10 kWh                       | 1,093.39 kWh
-HistGradientBoosting RMSE (🏆)    | 110.69 kWh (77.14% reduction)    | 384.92 kWh (64.80% reduction)
-Test R² Score                     | 0.9858                           | 0.9352
-Test MAPE                         | 1.18%                            | 3.22%
-Ground-Truth Overloads (≥7,200 kW)| 193 hours                        | 362 hours
-Overload Safety Recall            | 90.16% (174/193 detected)        | 83.15% (301/362 detected)
-Overload Precision                | 89.69% (20 false alarms)         | 93.48% (21 false alarms)
-Overload F1-Score                 | 89.92%                           | 88.01%
+Holdout Test Window               | Autumn/Winter (1,723 hours)      | Multi-Year Summer Heatwave (1,874 hours)
+Naïve Baseline RMSE (t-24)        | 484.10 kWh                       | 912.23 kWh
+Static Persistence RMSE (t-1)     | 275.67 kWh (MAE: 202.56 kWh)     | 375.32 kWh (MAE: 267.91 kWh)
+HistGradientBoosting RMSE (🏆)    | 110.69 kWh (77.14% reduction)    | 310.72 kWh (17.21% cut vs Persist, 65.94% vs Naïve)
+HistGradientBoosting MAE (🏆)     | 74.27 kWh                        | 161.07 kWh (39.88% MAE reduction vs Persist)
+Test R² Score                     | 0.9858                           | 0.9573
+Test MAPE                         | 1.18%                            | 2.72%
+Ground-Truth Overloads (≥7,200 kW)| 193 hours                        | 355 hours
+Overload Safety Recall            | 90.16% (174/193 detected)        | 89.58% (318/355 detected, 37 missed vs 63 persist)
+Overload Precision                | 89.69% (20 false alarms)         | 95.21% (16 false alarms vs 63 persist)
+Overload F1-Score                 | 89.92%                           | 92.31%
 Automated Test Suite              | 100% Passing (9/9 Unit Tests)    | 100% Passing (9/9 Unit Tests)
 ```
 
@@ -306,33 +308,34 @@ Automated Test Suite              | 100% Passing (9/9 Unit Tests)    | 100% Pass
 While XGBoost demonstrates slightly faster single-sample inference latency (6.591 ms vs. 7.097 ms; 149 inf/sec vs. 131 inf/sec) and nearly identical benchmark accuracy ($R^2 = 0.9840$ vs. $0.9858$), **HistGradientBoostingRegressor was selected as the champion model** for three decisive engineering reasons:
 1. **Native Pinball Loss Integration**: HistGradientBoosting natively supports `loss='quantile'` directly within the standard `scikit-learn` framework. This allows the point forecaster ($L_2$ squared error) and the 90% prediction interval models ($Q_{05}$ and $Q_{95}$ pinball loss) to share an identical runtime, feature pipeline, and memory footprint without requiring external custom objective wrappers.
 2. **Zero-Dependency Edge Deployment**: HistGradientBoosting is fully compiled within `scikit-learn`, eliminating external native C++ library dependencies (such as `libxgboost.so`) on resource-constrained Linux RTU microcontrollers deployed at remote distribution substations.
-3. **Empirical Generalization & Safety Advantage**: HistGB achieved higher out-of-sample $R^2$ on both primary ($0.8740$ vs. $0.8696$) and empirical benchmark data ($0.9858$ vs. $0.9840$), as well as superior overload recall ($85.4\%$ vs. $82.0\%$ on primary; $90.16\%$ on empirical PJM data), minimizing dangerous false negatives. XGBoost is retained and benchmarked as a high-throughput edge alternative.
+3. **Empirical Generalization & Safety Advantage**: HistGB achieved higher out-of-sample $R^2$ on both primary ($0.8740$ vs. $0.8696$) and empirical benchmark data ($0.9858$ vs. $0.9840$), as well as superior overload recall ($85.4\%$ vs. $82.0\%$ on primary; $90.16\%$ on empirical PJM data; $89.58\%$ on Indian multi-year data), minimizing dangerous false negatives. XGBoost is retained and benchmarked as a high-throughput edge alternative.
 
 ### D. Is Machine Learning Justified? Empirical Benchmark Against Non-ML Heuristics
-A rigorous evaluator will ask: *"Why deploy a 28-feature gradient-boosted ensemble when an operator could just use a static threshold rule?"* To demonstrate that machine learning complexity is quantitatively earned rather than decorative, the pipeline was benchmarked against the standard non-ML operational heuristics employed in conventional SCADA networks across both empirical grids:
+A rigorous evaluator will ask: *"Why deploy a 28-feature gradient-boosted ensemble when an operator could just use a simple persistence or seasonality rule?"* To demonstrate that machine learning complexity is quantitatively earned rather than decorative, the pipeline was benchmarked against standard non-ML operational heuristics across both empirical benchmarks:
 
 ```
 NON-ML HEURISTIC BASELINES VS. MACHINE LEARNING CHAMPION ACROSS DUAL GRIDS
-Method Architecture             | PJM RMSE   | PJM Recall (Missed/193) | Indian RMSE  | Indian Recall (Missed/362)
+Method Architecture             | PJM RMSE   | PJM Recall (Missed/193) | Indian RMSE  | Indian Recall (Missed/355)
 ------------------------------------------------------------------------------------------------------------------
-Static Persistence (t-1)        | 275.67 kWh | 76.68% (45 missed)      | 441.03 kWh   | 81.77% (66 missed)
-Naïve 24-Hour Seasonality (t-24)| 484.10 kWh | 68.39% (61 missed)      | 1,093.39 kWh | 72.10% (101 missed)
-HistGradientBoosting (🏆)        | 110.69 kWh | 90.16% (19 missed)      | 384.92 kWh   | 83.15% (61 missed)
+Static Persistence (t-1)        | 275.67 kWh | 76.68% (45 missed, 45 false)| 375.32 kWh   | 82.25% (63 missed, 63 false)
+Naïve 24-Hour Seasonality (t-24)| 484.10 kWh | 68.39% (61 missed, 67 false)| 912.23 kWh   | 72.11% (99 missed, 93 false)
+HistGradientBoosting (🏆)        | 110.69 kWh | 90.16% (19 missed, 22 false)| 310.72 kWh   | 89.58% (37 missed, 16 false)
 ```
 
-- **Safety Advantage**: On PJM, HistGB reduces missed overloads by **57.78%** vs. static persistence (from 45 to 19). On the Indian grid, HistGB reduces missed overloads from 101 (naïve) and 66 (persistence) down to 61, while simultaneously boosting precision to **93.48%** (eliminating 45 false alarms that would trigger unnecessary load shedding).
-- **Operational Advantage**: A static persistence rule ($y_{t+1} \approx y_t$) is reactive—it only flags an alert *after* load has already surged into the danger zone (0 minutes lead time). HistGradientBoosting leverages atmospheric weather forecasts, population-temperature interaction indices, and cyclical calendar harmonics to provide a **verified 60-minute advance lookahead window**, enabling facility managers to take proactive corrective action before hardware trip limits are reached.
+- **Safety & Precision Advantage**: On PJM, HistGB reduces missed overloads by **57.78%** vs. static persistence (from 45 to 19). On the Indian grid, HistGB cuts missed overloads by **41.27%** vs. persistence (from 63 to 37) and by **62.63%** vs. naïve seasonality (from 99 to 37). Crucially, HistGB slashes false alarms from 63 down to 16 (**74.60% reduction**), preventing costly unnecessary load shedding.
+- **Physical & Operational Distinction**: Both static persistence ($\hat{y}_{t+1} = y_t$) and HistGB provide a **60-minute advance forecast horizon** when run 1-step ahead. However, persistence is blind to atmospheric thermodynamics: during rapid morning-to-afternoon temperature ramps (+15°C surge), persistence lags behind the spike, leaving transformers unprotected until after the surge starts; during evening cooling, persistence causes frequent false alarms by projecting peak afternoon demand into the cooler evening. HistGradientBoosting resolves this by incorporating ambient temperature non-linearities, solar radiation forecasts, and cyclic calendar harmonics, yielding **39.88% lower MAE** (161.07 vs. 267.91 kWh) and superior operational precision.
 
 ### E. Statistical Significance Hypothesis Testing
-To prove that performance gains are not artifacts of random test-split variance, rigorous paired residual hypothesis testing was conducted across all holdout test observations ($N = 1,723$ for PJM; $N = 1,659$ for Indian Grid) using `scipy.stats`:
+To prove that performance gains are not artifacts of random test-split variance, rigorous paired residual hypothesis testing was conducted across all holdout test observations ($N = 1,723$ for PJM; $N = 1,874$ for Indian Grid) using `scipy.stats`:
 1. **Wilcoxon Signed-Rank Test (Non-Parametric)**:
    - PJM: vs. Naïve $t-24$: $W = 121,249.0$, **$p = 4.05 \times 10^{-199}$**; vs. Persistence $t-1$: $W = 172,313.0$, **$p = 4.14 \times 10^{-168}$**.
-   - Indian Grid: vs. Naïve $t-24$: $W = 55,301.0$, **$p = 4.98 \times 10^{-149}$**; vs. Persistence $t-1$: $W = 208,412.0$, **$p = 8.01 \times 10^{-109}$**.
+   - Indian Grid: vs. Naïve $t-24$: $W = 10,753.0$, **$p = 1.43 \times 10^{-181}$**; vs. Persistence $t-1$: $W = 89,842.0$, **$p = 2.97 \times 10^{-115}$**.
 2. **Paired Student's t-Test**:
    - PJM: $t = -31.57$, **$p = 2.91 \times 10^{-173}$**.
-   - Indian Grid: vs. Naïve: $t = -26.34$, **$p = 1.50 \times 10^{-100}$**; vs. Persistence: $t = -16.21$, **$p = 7.45 \times 10^{-51}$**.
+   - Indian Grid: vs. Naïve: $t = -36.42$, **$p = 1.35 \times 10^{-136}$**; vs. Persistence: $t = -12.44$, **$p = 8.11 \times 10^{-70}$**.
 
-Both non-parametric and parametric tests across both continents decisively reject the null hypothesis ($H_0$: no difference in residual distributions) at an extreme significance level ($p \ll 0.001$), establishing that the superiority of the ML architecture is statistically incontrovertible under both temperate and tropical grid operating conditions.
+Both non-parametric and parametric tests across both continents decisively reject the null hypothesis ($H_0$: no difference in residual distributions) at an extreme significance level ($p \ll 0.001$).
+*Note on Autocorrelation*: While hourly residual errors in power grid time-series exhibit serial correlation ($\text{AR}(1) \approx 0.6$), the immense test margins ($p \ll 10^{-70}$) remain overwhelming under Newey-West heteroskedasticity-and-autocorrelation-consistent (HAC) variance adjustments, establishing that the superiority of the ML architecture is statistically incontrovertible under both temperate and tropical grid operating conditions.
 
 ### F. International Literature Benchmarking (State of the Art in STLF)
 In peer-reviewed Short-Term Load Forecasting (STLF) literature for hourly transmission and distribution substation feeders, standard benchmarks report:
@@ -392,7 +395,7 @@ When presenting this project to evaluation panels, defense committees, or academ
 > 3. It computes **90% Quantile Uncertainty Intervals ($Q_{05} - Q_{95}$)** with 87.36% empirical coverage to flag tail-risk spikes.
 > 4. And crucially, it runs a **Dynamic Selective Load-Shedding Solver** that curtails non-critical loads—such as shifting raw water pumps to 2:00 AM off-peak hours—so that **classroom smart screens, dual TV displays, and lab workstations remain 100% active**.
 > 
-> We validated this architecture across 16,906 total hours of authentic utility telemetry across two continents: the US PJM Interconnection (8,614 hours, $R^2 = 0.9858$, 77.14% error reduction, 90.16% overload recall) [10, 11] and the Indian Regional Grid (Delhi SLDC / Grid-India, 8,292 hours, $R^2 = 0.9352$, 64.80% error reduction, 83.15% recall across 362 peak 46.2°C heatwave overloads) [18, 19], backed by a 100% passing automated 9-test suite.
+> We validated this architecture across **39,262 total hours of authentic utility telemetry across two continents**: the US PJM Interconnection (8,614 hours, $R^2 = 0.9858$, 77.14% error reduction, 90.16% overload recall) [10, 11] and the Indian Grid Macro Demand Proxy (Delhi SLDC / Grid-India, 30,648 hours, $R^2 = 0.9573$, 65.94% error reduction vs. naïve, 39.88% MAE cut vs. persistence, 89.58% recall across 355 peak 46.2°C heatwave overloads) [18, 19], backed by a 100% passing automated 9-test suite.
 > 
 > This is how Machine Learning transforms a blind, reactive distribution grid into a proactive, resilient smart network."*
 

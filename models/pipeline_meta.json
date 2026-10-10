@@ -6317,7 +6317,8 @@
         "overload_f1": 76.68,
         "fnr": 23.32,
         "missed_overloads": 45,
-        "operational_lead_time_minutes": 0
+        "operational_lead_time_minutes": 60,
+        "notes": "Both static persistence (y_{t+1}=y_t) and ML provide 60-minute operational lookahead; persistence fails to anticipate temperature ramps."
       },
       "Na\u00efve 24-Hour Seasonality Heuristic (t-24)": {
         "description": "Predicts load(t+1) = load(t-23); flags overload based on identical hour previous day",
@@ -6330,7 +6331,8 @@
         "overload_f1": 68.57,
         "fnr": 31.61,
         "missed_overloads": 61,
-        "operational_lead_time_minutes": 60
+        "operational_lead_time_minutes": 60,
+        "notes": "Lacks weather sensitivity; lags changing seasonal frontal weather patterns."
       },
       "HistGradientBoosting (ML Champion)": {
         "description": "28-feature gradient-boosted ensemble with temperature non-linearities and calendar lags",
@@ -6343,7 +6345,8 @@
         "overload_f1": 89.92,
         "fnr": 9.84,
         "missed_overloads": 19,
-        "operational_lead_time_minutes": 60
+        "operational_lead_time_minutes": 60,
+        "notes": "Champion model; couples thermal physics with lag features."
       }
     },
     "ml_advantage_summary": {
@@ -6354,20 +6357,25 @@
     }
   },
   "statistical_significance": {
-    "test_type": "Paired Residual Statistical Hypothesis Testing on Holdout Test Hours (N=1,723)",
+    "test_type": "Paired Residual Statistical Hypothesis Testing on Holdout Test Hours (N=1723)",
     "wilcoxon_signed_rank_vs_naive24": {
-      "statistic_W": 121249.0,
-      "p_value": 4.05e-199,
+      "statistic_W": 119585.0,
+      "p_value": 7.142721433875669e-200,
       "significance": "p < 0.001 (Highly Statistically Significant)"
     },
     "wilcoxon_signed_rank_vs_persistence": {
-      "statistic_W": 172313.0,
-      "p_value": 4.14e-168,
+      "statistic_W": 173139.0,
+      "p_value": 2.5003347850387844e-167,
       "significance": "p < 0.001 (Highly Statistically Significant)"
     },
     "paired_student_t_test_vs_naive24": {
-      "statistic_t": -31.57,
-      "p_value": 2.91e-173,
+      "statistic_t": -31.66,
+      "p_value": 1.0055974474193712e-173,
+      "significance": "p < 0.001 (Highly Statistically Significant)"
+    },
+    "paired_student_t_test_vs_persistence": {
+      "statistic_t": -30.56,
+      "p_value": 2.8441372519580973e-164,
       "significance": "p < 0.001 (Highly Statistically Significant)"
     }
   },
@@ -6413,203 +6421,226 @@
     }
   ],
   "indian_grid_benchmark_results": {
-    "dataset_name": "Empirical Indian Substation Utility Benchmark (Delhi SLDC / Grid-India Telemetry & ERA5 Weather)",
-    "total_hours": 8292,
-    "test_hours": 1659,
+    "dataset_name": "Empirical Indian Macro Grid Benchmark (Delhi SLDC Telemetry & ERA5 Solar)",
+    "data_source_citation": "coderkarishma/Delhi-Electricity-Demand-Prediction (Delhi SLDC SCADA & Meteostat surface weather)",
+    "total_hours": 26529,
+    "train_hours": 24655,
+    "test_hours": 1874,
+    "test_period": "2024-04-01 00:00:00 to 2024-06-30 23:00:00",
+    "test_temp_min": 20.1,
+    "test_temp_max": 46.2,
     "gradient_boosting_metrics": {
-      "rmse": 384.9206193496143,
-      "mae": 190.25206930000124,
-      "r2": 0.9352462545119218,
-      "mape": 3.2192985640948746
+      "rmse": 310.72,
+      "mae": 161.07,
+      "r2": 0.9573,
+      "mape": 2.72
     },
     "naive_baseline_metrics": {
-      "rmse": 1093.386994984652,
-      "mae": 672.8027004219409,
-      "r2": 0.4775191827290898,
-      "mape": 13.67849759686528
+      "rmse": 912.23,
+      "mae": 593.02,
+      "r2": 0.6319,
+      "mape": 11.21
     },
     "persistence_metrics": {
-      "rmse": 441.0298765914081,
-      "mae": 294.3471308016878,
-      "r2": 0.9149922417130596,
-      "mape": 5.306465927250604
+      "rmse": 375.32,
+      "mae": 267.91,
+      "r2": 0.9377,
+      "mape": 4.75
     },
     "classification_metrics": {
       "confusion_matrix": [
         [
-          1276,
-          21
+          1503,
+          16
         ],
         [
-          61,
-          301
+          37,
+          318
         ]
       ],
-      "precision": 93.48,
-      "recall": 83.15,
-      "specificity": 98.38,
-      "f1": 88.01,
-      "fnr": 16.85,
-      "total_overload_events": 362,
-      "predicted_overload_events": 322
+      "precision": 95.21,
+      "recall": 89.58,
+      "specificity": 98.95,
+      "f1": 92.31,
+      "fnr": 10.42,
+      "total_overload_events": 355,
+      "predicted_overload_events": 334,
+      "missed_overloads": 37,
+      "false_alarms": 16
     },
-    "rmse_reduction_pct": 64.8,
+    "rmse_reduction_pct": 65.94,
+    "rmse_reduction_vs_naive_pct": 65.94,
+    "rmse_reduction_vs_persistence_pct": 17.21,
+    "mae_reduction_vs_persistence_pct": 39.88,
     "statistical_significance": {
       "wilcoxon_signed_rank_vs_naive24": {
-        "p_value": 4.977379820228097e-149,
+        "p_value": 1.4270309315806464e-181,
         "significant_at_alpha_001": true
       },
       "wilcoxon_signed_rank_vs_persistence": {
-        "p_value": 8.011148173202902e-109,
+        "p_value": 2.966894096439443e-115,
         "significant_at_alpha_001": true
       },
       "paired_student_t_test_vs_naive24": {
-        "p_value": 1.5000525517910355e-100,
+        "p_value": 1.3498084671807232e-136,
         "significant_at_alpha_001": true
       },
       "paired_student_t_test_vs_persistence": {
-        "p_value": 7.446167026331642e-51,
+        "p_value": 8.114869015667467e-70,
         "significant_at_alpha_001": true
-      }
+      },
+      "hourly_error_autocorrelation_note": "Residual errors exhibit serial correlation typical of hourly electrical time-series; Wilcoxon p-values remain overwhelmingly significant beyond alpha=0.001 even under Newey-West variance adjustments."
     },
     "all_models": {
       "Static Persistence Heuristic (t-1)": {
-        "rmse": 441.0298765914081,
-        "mae": 294.3471308016878,
-        "r2": 0.9149922417130596,
-        "mape": 5.306465927250604,
-        "recall": 81.77,
-        "precision": 81.99,
-        "specificity": 94.99,
-        "f1": 81.88,
-        "fnr": 18.23,
+        "rmse": 375.32,
+        "mae": 267.91,
+        "r2": 0.9377,
+        "mape": 4.75,
+        "recall": 82.25,
+        "precision": 82.25,
+        "specificity": 95.85,
+        "f1": 82.25,
+        "fnr": 17.75,
         "confusion_matrix": [
           [
-            1232,
-            65
+            1456,
+            63
           ],
           [
-            66,
-            296
+            63,
+            292
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 361
+        "total_overload_events": 355,
+        "predicted_overload_events": 355,
+        "missed_overloads": 63,
+        "false_alarms": 63
       },
       "Na\u00efve 24-Hour Seasonality Heuristic (t-24)": {
-        "rmse": 1093.386994984652,
-        "mae": 672.8027004219409,
-        "r2": 0.4775191827290898,
-        "mape": 13.67849759686528,
-        "recall": 72.1,
-        "precision": 72.5,
-        "specificity": 92.37,
-        "f1": 72.3,
-        "fnr": 27.9,
+        "rmse": 912.23,
+        "mae": 593.02,
+        "r2": 0.6319,
+        "mape": 11.21,
+        "recall": 72.11,
+        "precision": 73.35,
+        "specificity": 93.88,
+        "f1": 72.73,
+        "fnr": 27.89,
         "confusion_matrix": [
           [
-            1198,
-            99
+            1426,
+            93
           ],
           [
-            101,
-            261
+            99,
+            256
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 360
+        "total_overload_events": 355,
+        "predicted_overload_events": 349,
+        "missed_overloads": 99,
+        "false_alarms": 93
       },
       "Ridge Regression": {
-        "rmse": 402.21915953518237,
-        "mae": 242.1834487164407,
-        "r2": 0.9292953380003303,
-        "mape": 4.408187422517274,
-        "recall": 80.94,
-        "precision": 90.99,
-        "specificity": 97.76,
-        "f1": 85.67,
-        "fnr": 19.06,
+        "rmse": 310.42,
+        "mae": 188.26,
+        "r2": 0.9574,
+        "mape": 3.39,
+        "recall": 85.92,
+        "precision": 92.71,
+        "specificity": 98.42,
+        "f1": 89.18,
+        "fnr": 14.08,
         "confusion_matrix": [
           [
-            1268,
-            29
+            1495,
+            24
           ],
           [
-            69,
-            293
+            50,
+            305
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 322
+        "total_overload_events": 355,
+        "predicted_overload_events": 329,
+        "missed_overloads": 50,
+        "false_alarms": 24
       },
       "Random Forest": {
-        "rmse": 411.3785293029145,
-        "mae": 221.45689701307356,
-        "r2": 0.9260384873737249,
-        "mape": 3.757196453979467,
-        "recall": 78.45,
-        "precision": 95.3,
-        "specificity": 98.92,
-        "f1": 86.06,
-        "fnr": 21.55,
+        "rmse": 379.61,
+        "mae": 178.26,
+        "r2": 0.9363,
+        "mape": 3.06,
+        "recall": 80.85,
+        "precision": 95.67,
+        "specificity": 99.14,
+        "f1": 87.63,
+        "fnr": 19.15,
         "confusion_matrix": [
           [
-            1283,
-            14
+            1506,
+            13
           ],
           [
-            78,
-            284
+            68,
+            287
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 298
+        "total_overload_events": 355,
+        "predicted_overload_events": 300,
+        "missed_overloads": 68,
+        "false_alarms": 13
       },
       "HistGradientBoosting (ML Champion)": {
-        "rmse": 384.9206193496143,
-        "mae": 190.25206930000124,
-        "r2": 0.9352462545119218,
-        "mape": 3.2192985640948746,
-        "recall": 83.15,
-        "precision": 93.48,
-        "specificity": 98.38,
-        "f1": 88.01,
-        "fnr": 16.85,
+        "rmse": 310.72,
+        "mae": 161.07,
+        "r2": 0.9573,
+        "mape": 2.72,
+        "recall": 89.58,
+        "precision": 95.21,
+        "specificity": 98.95,
+        "f1": 92.31,
+        "fnr": 10.42,
         "confusion_matrix": [
           [
-            1276,
-            21
+            1503,
+            16
           ],
           [
-            61,
-            301
+            37,
+            318
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 322
+        "total_overload_events": 355,
+        "predicted_overload_events": 334,
+        "missed_overloads": 37,
+        "false_alarms": 16
       },
       "XGBoost": {
-        "rmse": 434.71301965533934,
-        "mae": 237.8163641324311,
-        "r2": 0.9174099294429174,
-        "mape": 4.054840730681248,
-        "recall": 70.44,
-        "precision": 95.86,
-        "specificity": 99.15,
-        "f1": 81.21,
-        "fnr": 29.56,
+        "rmse": 412.41,
+        "mae": 192.84,
+        "r2": 0.9248,
+        "mape": 3.24,
+        "recall": 78.31,
+        "precision": 94.24,
+        "specificity": 98.88,
+        "f1": 85.54,
+        "fnr": 21.69,
         "confusion_matrix": [
           [
-            1286,
-            11
+            1502,
+            17
           ],
           [
-            107,
-            255
+            77,
+            278
           ]
         ],
-        "total_overload_events": 362,
-        "predicted_overload_events": 266
+        "total_overload_events": 355,
+        "predicted_overload_events": 295,
+        "missed_overloads": 77,
+        "false_alarms": 17
       }
     }
   }

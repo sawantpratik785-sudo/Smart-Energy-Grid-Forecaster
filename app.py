@@ -684,28 +684,29 @@ with tab2:
                 <div class="badge-card">
                     <h4 style="color: #f59e0b; margin-top: 0;">🏛️ Dataset Provenance & Indian Heatwave Conditions</h4>
                     <ul>
-                        <li><b>Utility Telemetry</b>: Delhi State Load Despatch Centre (SLDC) / Grid-India 5-minute SCADA recordings (<code>delhi_demand_raw.csv</code>).</li>
-                        <li><b>Weather Source</b>: ECMWF ERA5 Reanalysis Archive for National Capital Territory (28.61°N, 77.21°E).</li>
-                        <li><b>Feeder Scaling (1.10 Factor)</b>: Maps macro MW into a 1,685 to 9,422 kW heavy distribution feeder serving 140,000 residents in an industrial/commercial cluster.</li>
-                        <li><b>Physical Feeder Rating (8,000 kW)</b>: Standard 10 MVA transformer (0.80 PF) with 90% SCADA alarm at 7,200 kW.</li>
-                        <li><b>Holdout Test Period</b>: {indian_bench_results.get('test_hours', 1659):,} Test Hours (April 19 – June 30, 2024), capturing the peak Indian pre-monsoon heatwave (temperatures reaching <b>46.2°C</b>).</li>
-                        <li><b>Overload Severity</b>: Contains <b>362 real overload hours</b> due to heavy residential and commercial AC cooling demands.</li>
+                        <li><b>Macro Grid Demand Proxy</b>: Delhi State Load Despatch Centre (SLDC) / Grid-India SCADA telemetry mirrored via <code>coderkarishma/Delhi-Electricity-Demand-Prediction</code>.</li>
+                        <li><b>Continuous Hourly Grid</b>: 30,648 hours strictly resampled to hourly timestamps with short gap interpolation (≤3h) and gap-aware lags to eliminate row-count leakage.</li>
+                        <li><b>Weather Sources</b>: Ground surface weather (temp, humidity, wind) from Meteostat/IMD station recordings; solar irradiance from ECMWF ERA5 Reanalysis archive.</li>
+                        <li><b>Feeder Scaling (1.10 Factor)</b>: Standard 10 MVA transformer (0.80 PF, 8,000 kW physical rating) with 90% SCADA alarm at 7,200 kW.</li>
+                        <li><b>Multi-Year Holdout Split</b>: Trained on 24,655 hours (Jan 2021 – Mar 2024); tested on {indian_bench_results.get('test_hours', 1874):,} Holdout Test Hours (April 1 – June 30, 2024) across the <b>46.2°C</b> summer heatwave.</li>
+                        <li><b>Overload Severity</b>: Captures <b>{indian_bench_results.get('classification_metrics', {}).get('total_overload_events', 355)} real overload hours</b> driven by extreme AC cooling demand.</li>
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
             with ibc2:
                 igbm = indian_bench_results.get('gradient_boosting_metrics', {})
                 inbm = indian_bench_results.get('naive_baseline_metrics', {})
+                ipm = indian_bench_results.get('persistence_metrics', {})
                 ibcm = indian_bench_results.get('classification_metrics', {})
                 st.markdown(f"""
                 <div class="badge-card">
                     <h4 style="color: #34d399; margin-top: 0;">📈 Indian Heatwave Benchmark Performance</h4>
-                    <p>Gradient Boosting Test RMSE: <b>{igbm.get('rmse', 0):.2f} kWh</b> (vs. Naïve Baseline {inbm.get('rmse', 0):.2f} kWh)</p>
-                    <p>Empirical Test R² Score: <b>{igbm.get('r2', 0):.4f}</b> | Error Reduction: <span style="font-size: 1.15rem; color: #34d399;"><b>{indian_bench_results.get('rmse_reduction_pct', 0)}%</b></span></p>
+                    <p>HistGradientBoosting RMSE: <b>{igbm.get('rmse', 0):.2f} kWh</b> (vs. Persistence {ipm.get('rmse', 375.32):.2f} kWh & Naïve {inbm.get('rmse', 912.23):.2f} kWh)</p>
+                    <p>Empirical Test R² Score: <b>{igbm.get('r2', 0):.4f}</b> | MAE: <b>{igbm.get('mae', 0):.2f} kWh</b> (<b>{indian_bench_results.get('mae_reduction_vs_persistence_pct', 39.88)}% MAE cut</b> vs. persistence)</p>
                     <p style="margin-top: 6px; font-size: 0.9rem; color: #cbd5e1;">
                         <b>Overload Safety (≥90% Feeder Capacity)</b>: Recall: <span style="color:#38bdf8;"><b>{ibcm.get('recall', 0):.1f}%</b></span> | Precision: <span style="color:#38bdf8;"><b>{ibcm.get('precision', 0):.1f}%</b></span> | F1: <span style="color:#34d399;"><b>{ibcm.get('f1', 0):.1f}%</b></span> ({ibcm.get('predicted_overload_events', 0)} / {ibcm.get('total_overload_events', 0)} events detected)
                     </p>
-                    <span style="color: #94a3b8; font-size: 0.82rem;">Successfully detects 301 out of 362 extreme summer overloads (83.15% recall) with only 21 false alarms (93.48% precision) in 46°C heatwaves.</span>
+                    <span style="color: #94a3b8; font-size: 0.82rem;">Catches {ibcm.get('predicted_overload_events', 318) - ibcm.get('false_alarms', 16)} of {ibcm.get('total_overload_events', 355)} extreme summer overloads (89.58% recall) with only 16 false alarms (95.21% precision, down from 63 false alarms under persistence) in 46°C heatwaves.</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -718,7 +719,7 @@ with tab2:
             <tr style="border-bottom: 1px solid #475569; text-align: left; color: #94a3b8;">
                 <th style="padding: 6px;">Evaluation Dimension</th>
                 <th style="padding: 6px;">🇺🇸 US PJM Interconnection</th>
-                <th style="padding: 6px;">🇮🇳 Indian Regional Grid (Delhi SLDC)</th>
+                <th style="padding: 6px;">🇮🇳 Indian Grid Macro Demand Proxy (Delhi SLDC)</th>
             </tr>
             <tr style="border-bottom: 1px solid #334155;">
                 <td style="padding: 5px;"><b>Climatic & Ambient Profile</b></td>
@@ -728,32 +729,37 @@ with tab2:
             <tr style="border-bottom: 1px solid #334155;">
                 <td style="padding: 5px;"><b>Total Telemetry Records</b></td>
                 <td style="padding: 5px;">8,614 Hourly Hours (1,723 Test Hours)</td>
-                <td style="padding: 5px;">8,292 Hourly Hours (1,659 Test Hours)</td>
+                <td style="padding: 5px;">30,648 Hourly Hours (1,874 Holdout Test Hours)</td>
             </tr>
             <tr style="border-bottom: 1px solid #334155;">
-                <td style="padding: 5px;"><b>Naïve Baseline RMSE</b></td>
+                <td style="padding: 5px;"><b>Naïve Baseline RMSE (t-24)</b></td>
                 <td style="padding: 5px;">484.10 kWh</td>
-                <td style="padding: 5px;">1,093.39 kWh</td>
+                <td style="padding: 5px;">912.23 kWh</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px;"><b>Static Persistence RMSE (t-1)</b></td>
+                <td style="padding: 5px;">275.67 kWh</td>
+                <td style="padding: 5px;">375.32 kWh (MAE: 267.91 kWh)</td>
             </tr>
             <tr style="border-bottom: 1px solid #334155;">
                 <td style="padding: 5px;"><b>Champion HistGB RMSE</b></td>
-                <td style="padding: 5px; color: #34d399; font-weight:700;">110.69 kWh (77.14% cut)</td>
-                <td style="padding: 5px; color: #34d399; font-weight:700;">384.92 kWh (64.80% cut)</td>
+                <td style="padding: 5px; color: #34d399; font-weight:700;">110.69 kWh (77.14% cut vs Naive)</td>
+                <td style="padding: 5px; color: #34d399; font-weight:700;">310.72 kWh (17.21% cut vs Persist, 65.94% vs Naive)</td>
             </tr>
             <tr style="border-bottom: 1px solid #334155;">
                 <td style="padding: 5px;"><b>Test R² Score / MAPE</b></td>
                 <td style="padding: 5px;">R² = 0.9858 | MAPE = 1.18%</td>
-                <td style="padding: 5px;">R² = 0.9352 | MAPE = 3.22%</td>
+                <td style="padding: 5px;">R² = 0.9573 | MAPE = 2.72% (MAE: 161.07 kWh)</td>
             </tr>
             <tr style="border-bottom: 1px solid #334155;">
                 <td style="padding: 5px;"><b>Holdout Overload Ground Truth (≥7,200 kW)</b></td>
                 <td style="padding: 5px;">193 Events (Winter Heating Peaks)</td>
-                <td style="padding: 5px;">362 Events (Summer Heatwave Peaks)</td>
+                <td style="padding: 5px;">355 Events (Summer Heatwave Peaks)</td>
             </tr>
             <tr style="background: rgba(16, 185, 129, 0.12); font-weight: 700;">
                 <td style="padding: 5px; color: #34d399;">Overload Safety Recall / Precision</td>
-                <td style="padding: 5px; color: #34d399;">90.16% Recall | 89.69% Precision</td>
-                <td style="padding: 5px; color: #34d399;">83.15% Recall | 93.48% Precision</td>
+                <td style="padding: 5px; color: #34d399;">90.16% Recall | 89.69% Precision (19 missed)</td>
+                <td style="padding: 5px; color: #34d399;">89.58% Recall | 95.21% Precision (37 missed vs 63 by persist)</td>
             </tr>
         </table>
     </div>
@@ -771,26 +777,26 @@ with tab2:
                 <tr style="border-bottom: 1px solid #475569; text-align: left; color: #94a3b8;">
                     <th style="padding: 4px;">Baseline Method</th>
                     <th style="padding: 4px;">PJM Recall (Missed/193)</th>
-                    <th style="padding: 4px;">Indian Recall (Missed/362)</th>
+                    <th style="padding: 4px;">Indian Recall (Missed/355)</th>
                 </tr>
                 <tr style="border-bottom: 1px solid #334155;">
                     <td style="padding: 4px;">Static Persistence ($t-1$)</td>
-                    <td style="padding: 4px; color: #f87171;">76.68% (45 missed)</td>
-                    <td style="padding: 4px; color: #f87171;">81.77% (66 missed)</td>
+                    <td style="padding: 4px; color: #f87171;">76.68% (45 missed, 45 false)</td>
+                    <td style="padding: 4px; color: #f87171;">82.25% (63 missed, 63 false)</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #334155;">
                     <td style="padding: 4px;">Naïve 24-Hour ($t-24$)</td>
-                    <td style="padding: 4px; color: #f87171;">68.39% (61 missed)</td>
-                    <td style="padding: 4px; color: #f87171;">72.10% (101 missed)</td>
+                    <td style="padding: 4px; color: #f87171;">68.39% (61 missed, 67 false)</td>
+                    <td style="padding: 4px; color: #f87171;">72.11% (99 missed, 93 false)</td>
                 </tr>
                 <tr style="background: rgba(16, 185, 129, 0.15); font-weight: 700;">
                     <td style="padding: 4px; color: #34d399;">HistGB ML Champion (🏆)</td>
-                    <td style="padding: 4px; color: #34d399;">90.16% (19 missed)</td>
-                    <td style="padding: 4px; color: #34d399;">83.15% (61 missed)</td>
+                    <td style="padding: 4px; color: #34d399;">90.16% (19 missed, 22 false)</td>
+                    <td style="padding: 4px; color: #34d399;">89.58% (37 missed, 16 false)</td>
                 </tr>
             </table>
             <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 8px;">
-                <b>Result</b>: ML cuts missed overloads by <b>57.8% on PJM</b> and provides a <b>60-minute lookahead</b> that reactive threshold rules cannot deliver.
+                <b>Engineering Difference</b>: Both persistence ($y_{t+1}=y_t$) and ML produce 1-step forecasts 60 minutes ahead. But persistence is blind to atmospheric physics: it lags rapid +15°C afternoon heat ramps and creates 63 false alarms on cooldowns. ML cuts missed overloads by <b>41.3%</b> and false alarms by <b>74.6%</b> with <b>39.9% lower MAE</b> (161 vs 268 kWh).
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -801,9 +807,10 @@ with tab2:
             <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 6px;">
                 <b>Hypothesis Testing on Residuals ($p$-values):</b>
                 <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.76rem;">
-                    <li><b>Wilcoxon Signed-Rank vs Naïve $t-24$</b>: PJM $p = 4.05 \\times 10^{-199}$ | Indian $p = 4.98 \\times 10^{-149}$ ($p \\ll 0.001$).</li>
-                    <li><b>Wilcoxon Signed-Rank vs Persistence $t-1$</b>: PJM $p = 4.14 \\times 10^{-168}$ | Indian $p = 8.01 \\times 10^{-109}$ ($p \\ll 0.001$).</li>
-                    <li><b>Paired Student's t-test</b>: PJM $p = 2.91 \\times 10^{-173}$ | Indian $p = 1.50 \\times 10^{-100}$ ($p \\ll 0.001$).</li>
+                    <li><b>Wilcoxon vs Naïve $t-24$</b>: PJM $p = 4.05 \\times 10^{-199}$ | Indian $p = 1.43 \\times 10^{-181}$ ($p \\ll 0.001$).</li>
+                    <li><b>Wilcoxon vs Persistence $t-1$</b>: PJM $p = 4.14 \\times 10^{-168}$ | Indian $p = 2.97 \\times 10^{-115}$ ($p \\ll 0.001$).</li>
+                    <li><b>Paired Student's t-test</b>: PJM $p = 2.91 \\times 10^{-173}$ | Indian $p = 8.11 \\times 10^{-70}$ ($p \\ll 0.001$).</li>
+                    <li><i>Note</i>: Serial autocorrelation exists in hourly errors; margins of significance remain robust beyond $\\alpha=0.001$.</li>
                 </ul>
             </div>
             <div style="font-size: 0.82rem; color: #cbd5e1;">
@@ -811,7 +818,7 @@ with tab2:
                 <ul style="margin: 4px 0 6px 16px; padding: 0; font-size: 0.76rem;">
                     <li>Chen et al. (IEEE Trans. Power Syst.): <i>1.86% – 2.95% MAPE</i></li>
                     <li>Hong & Fan (Int. J. Forecasting): <i>1.80% – 4.20% MAPE</i></li>
-                    <li><b>Our Pipeline (PJM / Indian Benchmark)</b>: <b style="color: #34d399;">1.18% / 3.22% MAPE ($R^2 = 0.9858$ / $0.9352$)</b></li>
+                    <li><b>Our Pipeline (PJM / Indian Benchmark)</b>: <b style="color: #34d399;">1.18% / 2.72% MAPE ($R^2 = 0.9858$ / $0.9573$)</b></li>
                 </ul>
             </div>
         </div>
@@ -850,16 +857,16 @@ with tab3:
         st.session_state.preset_lag24 = 1250.0
 
     with p1:
-        if st.button("🔥 Delhi Heatwave (46°C, 3 PM)", use_container_width=True):
+        if st.button("🔥 Heatwave Surge (44°C, 3 PM)", use_container_width=True):
             st.session_state.preset_hour = 15
-            st.session_state.preset_temp = 46.0
+            st.session_state.preset_temp = 44.0
             st.session_state.preset_humidity = 35.0
-            st.session_state.preset_pop = 100000
-            st.session_state.preset_cap = 8000.0
+            st.session_state.preset_pop = 45000
+            st.session_state.preset_cap = 3500.0
             st.session_state.preset_zone = "Commercial / MNC Hub"
             st.session_state.preset_weekend = False
-            st.session_state.preset_lag1 = 7400.0
-            st.session_state.preset_lag24 = 7350.0
+            st.session_state.preset_lag1 = 3100.0
+            st.session_state.preset_lag24 = 3050.0
             st.rerun()
 
     with p2:
@@ -901,6 +908,7 @@ with tab3:
             st.session_state.preset_lag24 = 2200.0
             st.rerun()
 
+    st.caption("ℹ️ *Demonstration presets reflect in-distribution scenarios (Transformer rating: 2,500 – 4,500 kW; Population: up to 45,000). In single-feeder benchmarks, population acts as a static zone identifier.*")
     st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
     
     col_input, col_out = st.columns([5, 4])

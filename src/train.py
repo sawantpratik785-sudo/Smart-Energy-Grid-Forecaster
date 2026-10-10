@@ -563,7 +563,18 @@ def run_training_pipeline():
             return bool(obj)
         return str(obj)
 
-    with open(os.path.join(models_dir, 'pipeline_meta.json'), 'w') as f:
+    meta_file = os.path.join(models_dir, 'pipeline_meta.json')
+    if os.path.exists(meta_file):
+        try:
+            with open(meta_file, 'r') as f:
+                existing_meta = json.load(f)
+            for k, v in existing_meta.items():
+                if k not in pipeline_meta:
+                    pipeline_meta[k] = v
+        except Exception as e:
+            print(f"[WARN] Could not preserve existing metadata keys: {e}")
+
+    with open(meta_file, 'w') as f:
         json.dump(pipeline_meta, f, indent=2, default=json_serializable)
 
     print(f"\n[SUCCESS] Enhanced Training Pipeline completed successfully! All artifacts written to {models_dir}")

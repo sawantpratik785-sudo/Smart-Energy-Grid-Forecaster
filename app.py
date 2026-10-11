@@ -637,7 +637,7 @@ with tab2:
     **Conclusively Addressing the 'Purely Synthetic Data' Critique**:
     To demonstrate that our 28-feature engineering pipeline and HistGradientBoosting architecture generalize to authentic utility operations rather than memorizing synthetic formulas, the pipeline is evaluated across two distinct empirical power systems:
     1. **US PJM Interconnection Benchmark**: 8,614 hours of real utility telemetry (Temperate zone, winter heating peaks).
-    2. **Indian Regional Grid Benchmark (Delhi SLDC / Grid-India)**: 8,292 hours of real utility telemetry (Tropical zone, extreme pre-monsoon heatwaves reaching 46.2°C).
+    2. **Indian Regional Grid Benchmark (Delhi SLDC / Grid-India)**: 30,648 continuous hourly timestamps (26,529 valid modeling rows after gap-aware lag filtering), authentic SLDC telemetry — Tropical zone, extreme pre-monsoon heatwaves reaching 46.2°C.
     """)
 
     # Dual Continent Cards
